@@ -23,7 +23,7 @@ A simple, minimal personal website featuring resume, projects, and blog sections
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/username/username.github.io.git
+   git remote add origin https://github.com/jackmcgaughey/jackmcgaughey.github.io.git
    git push -u origin main
    ```
 
@@ -34,7 +34,7 @@ A simple, minimal personal website featuring resume, projects, and blog sections
    - Click "Save"
    - Your site will be live at `https://username.github.io` in a few minutes
 
-## 📝 Customizing Your Site
+## 📝 Customizing Your Site`
 
 ### Update Your Information
 
@@ -149,3 +149,6 @@ If you need to make changes or have questions:
 
 **Ready to launch?** Follow the deployment steps above and your site will be live in minutes!
 
+make links open in new tab, add city for work next to place, add link to google scholar page
+
+add all of my socials on the resume page to the others. 
