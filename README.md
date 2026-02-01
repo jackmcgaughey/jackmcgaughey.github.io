@@ -149,6 +149,8 @@ If you need to make changes or have questions:
 
 **Ready to launch?** Follow the deployment steps above and your site will be live in minutes!
 
+add links that connect to my projects. add a link to videos of my speeches for self competitive policy optimization and the mario RL agent. this is just a link to google drive video
+
 make links open in new tab, add city for work next to place, add link to google scholar page
 
 add all of my socials on the resume page to the others. 
