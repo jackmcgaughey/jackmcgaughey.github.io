@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Combinatorial Sky — An Atlas of Discrete Constellations</title>
+<meta name="description" content="An interactive star atlas where the constellations are combinatorial objects: Catalan structures, Ramsey games, Pascal nebulae, de Bruijn zodiacs, partition clusters, and random skies.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --sky:#0A0F1E;
+  --sky-2:#101730;
+  --vellum:#E8E1D0;
+  --dim:#9CA8BC;
+  --gold:#D8B66A;
+  --gold-bright:#F2D894;
+  --brass:#A8854B;
+  --rose:#C97070;
+  --teal:#7FB8B0;
+  --hair:rgba(216,182,106,.28);
+  --hair-soft:rgba(216,182,106,.14);
+  --panel:rgba(16,23,48,.55);
+  --display:'Cormorant Garamond', Georgia, serif;
+  --body:'Spectral', Georgia, serif;
+  --mono:'IBM Plex Mono', monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--sky);
+  color:var(--vellum);
+  font-family:var(--body);
+  font-weight:300;
+  font-size:1.04rem;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+::selection{background:var(--gold);color:var(--sky)}
+
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none}
+.page{position:relative;z-index:1}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+
+a{color:var(--gold)}
+button{font-family:inherit;cursor:pointer;color:inherit}
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+.smallcaps{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);
+}
+
+/* ============ HERO ============ */
+.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding:90px 0 60px;text-align:center}
+.hero .smallcaps{margin-bottom:26px}
+.hero h1{
+  font-family:var(--display);font-weight:600;letter-spacing:.045em;
+  font-size:clamp(2.7rem,7.4vw,5.4rem);line-height:1.06;
+}
+.hero h1 .amp{font-style:italic;color:var(--gold)}
+.hero .sub{
+  max-width:62ch;margin:28px auto 0;color:var(--dim);font-size:1.08rem;font-style:italic;
+}
+.hero .dedication{
+  margin-top:40px;font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);
+}
+.hero-rule{width:130px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:34px auto 0}
+.toc{
+  margin:44px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 28px;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+}
+.toc a{color:var(--dim);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:3px}
+.toc a:hover{color:var(--gold-bright);border-color:var(--hair)}
+.toc a b{color:var(--gold);font-weight:500}
+.scroll-cue{margin-top:60px;color:var(--brass);font-family:var(--mono);font-size:.65rem;letter-spacing:.3em;animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+/* moon button (easter egg) */
+.moon{
+  position:fixed;top:22px;right:24px;z-index:40;width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle at 34% 32%, #F4EBD4 0 56%, #C9BD9E 70%, #9d9077 100%);
+  border:none;box-shadow:0 0 22px rgba(244,235,212,.35);opacity:.85;
+}
+.moon:hover{opacity:1}
+
+/* ============ PLATE SCAFFOLD ============ */
+.plate{padding:110px 0 70px;border-top:1px solid var(--hair-soft);position:relative}
+.plate-head{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin-bottom:8px}
+.plate-no{
+  font-family:var(--display);font-style:italic;font-weight:500;color:var(--gold);font-size:1.15rem;letter-spacing:.06em;white-space:nowrap;
+}
+.plate h2{
+  font-family:var(--display);font-weight:600;font-size:clamp(1.9rem,4.4vw,3rem);letter-spacing:.03em;line-height:1.1;
+}
+.plate .lede{max-width:66ch;color:var(--dim);margin-top:10px}
+.plate .lede em{color:var(--vellum)}
+
+.instrument{
+  margin-top:36px;border:1px solid var(--hair);background:var(--panel);
+  backdrop-filter:blur(3px);border-radius:4px;padding:26px;
+  box-shadow:0 0 0 1px rgba(10,15,30,.6), 0 18px 50px rgba(0,0,0,.35);
+  position:relative;
+}
+.instrument::before, .instrument::after{
+  content:"✦";position:absolute;color:var(--brass);font-size:.7rem;opacity:.8;
+}
+.instrument::before{top:8px;left:12px}
+.instrument::after{bottom:8px;right:12px}
+
+.controls{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;margin-bottom:20px}
+.ctl{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.ctl output{color:var(--gold-bright);min-width:2.2em;text-align:right}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:170px;height:2px;background:var(--hair);border-radius:2px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--gold);border:2px solid var(--sky);box-shadow:0 0 8px rgba(216,182,106,.7);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;background:var(--gold);border:2px solid var(--sky);cursor:pointer;
+}
+.seg{display:inline-flex;border:1px solid var(--hair);border-radius:3px;overflow:hidden}
+.seg button{
+  background:none;border:none;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;
+  padding:7px 14px;color:var(--dim);border-left:1px solid var(--hair-soft);
+}
+.seg button:first-child{border-left:none}
+.seg button[aria-pressed="true"]{background:var(--gold);color:var(--sky)}
+.btn-quiet{
+  background:none;border:1px solid var(--hair);border-radius:3px;color:var(--gold);
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:8px 16px;
+}
+.btn-quiet:hover{background:rgba(216,182,106,.12)}
+
+.caption{
+  margin-top:22px;padding-top:16px;border-top:1px solid var(--hair-soft);
+  font-size:.92rem;color:var(--dim);max-width:72ch;
+}
+.caption .fig{font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--brass);display:block;margin-bottom:6px}
+.caption code, .stat code{font-family:var(--mono);font-size:.85em;color:var(--gold-bright)}
+
+.statrow{display:flex;flex-wrap:wrap;gap:10px 30px;font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:14px}
+.statrow b{color:var(--gold-bright);font-weight:500}
+
+/* ============ PLATE I — CATALAN ============ */
+.catalan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.cat-card{
+  border:1px solid var(--hair-soft);border-radius:3px;padding:10px 10px 8px;background:rgba(10,15,30,.45);
+  transition:border-color .2s, transform .2s;cursor:pointer;
+}
+.cat-card:hover, .cat-card.lit{border-color:var(--gold);transform:translateY(-2px)}
+.cat-card svg{display:block;width:100%;height:auto}
+.cat-card .word{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--dim);text-align:center;margin-top:6px;
+}
+.cat-card.lit .word{color:var(--gold-bright)}
+.cat-views{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.formula{
+  font-family:var(--display);font-style:italic;font-size:1.35rem;color:var(--gold-bright);letter-spacing:.04em;
+}
+
+/* ============ PLATE II — SIM ============ */
+.sim-layout{display:grid;grid-template-columns:minmax(280px,420px) 1fr;gap:30px;align-items:start}
+@media(max-width:780px){.sim-layout{grid-template-columns:1fr}}
+.sim-board{width:100%;max-width:420px;margin:0 auto;display:block}
+.sim-edge{stroke:rgba(156,168,188,.22);stroke-width:2.5;cursor:pointer;transition:stroke .15s}
+.sim-edge:hover{stroke:rgba(232,225,208,.55)}
+.sim-edge.gold{stroke:var(--gold);stroke-width:3;cursor:default}
+.sim-edge.rose{stroke:var(--rose);stroke-width:3;cursor:default}
+.sim-edge.fatal{stroke-width:5;filter:drop-shadow(0 0 6px currentColor)}
+.sim-edge.disabled{cursor:default}
+.sim-star{fill:var(--gold-bright);filter:drop-shadow(0 0 5px rgba(242,216,148,.8))}
+.sim-label{fill:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:2px}
+.sim-msg{
+  font-family:var(--display);font-style:italic;font-size:1.3rem;color:var(--gold-bright);min-height:2.2em;margin-bottom:10px;
+}
+.sim-side p{color:var(--dim);font-size:.95rem;max-width:48ch}
+.sim-score{margin-top:16px}
+
+/* ============ PLATE III — NEBULA ============ */
+.nebula-wrap{display:flex;justify-content:center}
+#nebulaCanvas{width:100%;max-width:760px;height:auto;border:1px solid var(--hair-soft);border-radius:3px;background:#070B16}
+
+/* ============ PLATE IV — ZODIAC ============ */
+.zodiac-layout{display:grid;grid-template-columns:minmax(280px,400px) 1fr;gap:30px;align-items:center}
+@media(max-width:780px){.zodiac-layout{grid-template-columns:1fr}}
+.zodiac-svg{width:100%;max-width:400px;margin:0 auto;display:block}
+.zbit{font-family:var(--mono);font-size:13px;fill:var(--dim)}
+.zbit.one{fill:var(--gold-bright)}
+.zledger{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.zword{
+  font-family:var(--mono);font-size:.78rem;letter-spacing:.18em;text-align:center;
+  border:1px solid var(--hair-soft);border-radius:3px;padding:7px 0;color:var(--dim);transition:all .2s;
+}
+.zword.seen{color:var(--gold-bright);border-color:var(--hair)}
+.zword.now{background:var(--gold);color:var(--sky);border-color:var(--gold)}
+
+/* ============ PLATE V — PARTITIONS ============ */
+.part-grid{display:flex;flex-wrap:wrap;gap:16px}
+.part-card{
+  border:1px solid var(--hair-soft);border-radius:3px;padding:12px;background:rgba(10,15,30,.45);cursor:pointer;
+  transition:border-color .2s;
+}
+.part-card:hover{border-color:var(--gold)}
+.part-card svg{display:block}
+.part-card .plabel{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--dim);text-align:center;margin-top:8px}
+.pdot{fill:var(--gold-bright);transition:cx .5s cubic-bezier(.5,0,.2,1), cy .5s cubic-bezier(.5,0,.2,1)}
+.part-card.conj .plabel{color:var(--gold-bright)}
+
+/* ============ PLATE VI — RANDOM SKY ============ */
+.rsky-svg{width:100%;max-width:760px;display:block;margin:0 auto;border:1px solid var(--hair-soft);border-radius:3px;background:#070B16}
+.r-edge{stroke:rgba(216,182,106,.4);stroke-width:1.1}
+.r-edge.giant{stroke:rgba(242,216,148,.85);stroke-width:1.6}
+.r-star{fill:var(--dim)}
+.r-star.giant{fill:var(--gold-bright);filter:drop-shadow(0 0 4px rgba(242,216,148,.8))}
+.threshold-row{position:relative;max-width:430px;margin-top:4px;height:16px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;color:var(--brass)}
+.threshold-row span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+
+/* ============ COLOPHON ============ */
+.colophon{padding:100px 0 120px;text-align:center;border-top:1px solid var(--hair-soft)}
+.colophon .smallcaps{display:block;margin-bottom:18px}
+.colophon p{max-width:56ch;margin:0 auto;color:var(--dim);font-style:italic}
+.colophon .endmark{font-family:var(--display);font-size:1.6rem;color:var(--gold);margin-top:30px}
+
+/* ============ GOOSE OVERLAY ============ */
+.goose-overlay{
+  position:fixed;inset:0;background:rgba(7,10,20,.92);z-index:60;display:none;place-items:center;padding:20px;
+}
+.goose-overlay.open{display:grid}
+.goose-box{max-width:430px;text-align:center}
+.goose-box svg{width:100%;height:auto}
+.goose-box h3{font-family:var(--display);font-weight:600;letter-spacing:.08em;font-size:1.5rem;margin-top:14px}
+.goose-box p{color:var(--dim);font-size:.92rem;font-style:italic;margin-top:8px}
+.goose-box button{margin-top:20px}
+.gstar{fill:var(--gold-bright);filter:drop-shadow(0 0 6px rgba(242,216,148,.9))}
+.gline{stroke:var(--hair);stroke-width:1.4;stroke-dasharray:340;stroke-dashoffset:340}
+.goose-overlay.open .gline{animation:trace 2.4s .3s ease forwards}
+@keyframes trace{to{stroke-dashoffset:0}}
+
+@media(max-width:640px){
+  .plate{padding:80px 0 50px}
+  .instrument{padding:18px 14px}
+  input[type=range]{width:130px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+  html{scroll-behavior:auto}
+  .goose-overlay.open .gline{stroke-dashoffset:0}
+}
+</style>
+</head>
+<body>
+<canvas id="starfield" aria-hidden="true"></canvas>
+<button class="moon" id="moonBtn" aria-label="A small moon. Curious people press it."></button>
+
+<div class="page">
+
+<!-- ================= HERO ================= -->
+<header class="hero wrap">
+  <div class="smallcaps">Plates I – VI · Drawn &amp; computed in one night</div>
+  <h1>The Combinatorial Sky<br><span class="amp">an atlas of discrete constellations</span></h1>
+  <p class="sub">Astronomers joined stars into pictures so the sky could be remembered. Combinatorists do the same with finite sets — we just admit the lines were the point all along. Six instruments follow. All of them are live; touch everything.</p>
+  <div class="hero-rule"></div>
+  <nav class="toc" aria-label="Plates">
+    <a href="#plate1"><b>I</b> · The Catalan Constellations</a>
+    <a href="#plate2"><b>II</b> · Ramsey's Hexagon</a>
+    <a href="#plate3"><b>III</b> · The Sierpiński Nebula</a>
+    <a href="#plate4"><b>IV</b> · The de Bruijn Zodiac</a>
+    <a href="#plate5"><b>V</b> · The Partition Clusters</a>
+    <a href="#plate6"><b>VI</b> · A Random Sky</a>
+  </nav>
+  <div class="dedication">for J.M., B.Math '26 — who already knows the sky is mostly edges</div>
+  <div class="scroll-cue">▽ descend</div>
+</header>
+
+<!-- ================= PLATE I ================= -->
+<section class="plate wrap" id="plate1">
+  <div class="plate-head"><span class="plate-no">Plate I.</span><h2>The Catalan Constellations</h2></div>
+  <p class="lede">One number, wearing different skies. Each card below is a <em>single object</em> drawn four ways — as a mountain path, a chord diagram, a bracket word, and a binary tree — and every card is a different object entirely. The miracle is that all four censuses agree, for every <em>n</em>, forever.</p>
+
+  <div class="instrument">
+    <div class="controls">
+      <span class="ctl">order n
+        <span class="seg" id="catSeg">
+          <button data-n="2" aria-pressed="false">2</button>
+          <button data-n="3" aria-pressed="true">3</button>
+          <button data-n="4" aria-pressed="false">4</button>
+        </span>
+      </span>
+      <span class="formula" id="catFormula"></span>
+    </div>
+    <div class="catalan-grid" id="catGrid"></div>
+    <div class="caption">
+      <span class="fig">Fig. 1 — the four-fold census</span>
+      Top-left: a <em>Dyck path</em>, n steps up and n down, never dipping below the horizon. Top-right: the same word's matched pairs as <em>non-crossing chords</em> on a circle of 2n stars. Below: the bracket word itself, and the <em>binary tree</em> it folds into. The count is <code>C(n) = (2n choose n)/(n+1)</code> — Stanley's book lists 214 more disguises, but four felt like enough for one plate.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLATE II ================= -->
+<section class="plate wrap" id="plate2">
+  <div class="plate-head"><span class="plate-no">Plate II.</span><h2>Ramsey's Hexagon <span style="font-style:italic;font-weight:500;font-size:.55em;color:var(--dim)">— a playable theorem</span></h2></div>
+  <p class="lede">Six stars, fifteen possible lines. You and the Archivist take turns claiming them — yours gold, the Archivist's rose. Whoever completes a triangle <em>in their own colour</em> has marred the chart and loses. Because <em>R(3,3) = 6</em>, the sky refuses to allow a draw: someone must lose. Try not to let it be you.</p>
+
+  <div class="instrument">
+    <div class="sim-layout">
+      <svg class="sim-board" id="simBoard" viewBox="0 0 420 420" role="img" aria-label="Sim game board: six stars in a hexagon, click an uncoloured line to claim it"></svg>
+      <div class="sim-side">
+        <div class="sim-msg" id="simMsg">Your move. Claim any line.</div>
+        <p>The Archivist plays cautiously: it will never finish its own triangle while a safe line exists, and it favours lines that leave it the fewest future traps. It can still be beaten — and it will absolutely let <em>you</em> hang yourself.</p>
+        <div class="statrow sim-score"><span>you <b id="scoreYou">0</b></span><span>archivist <b id="scoreAI">0</b></span><span>games <b id="scoreGames">0</b></span></div>
+        <div style="margin-top:18px"><button class="btn-quiet" id="simReset">redraw the chart</button></div>
+      </div>
+    </div>
+    <div class="caption">
+      <span class="fig">Fig. 2 — the inevitability engine</span>
+      This is the game of <em>Sim</em> (Simmons, 1969). Colour the 15 edges of K₆ in two colours however you like — a monochromatic triangle always appears; that is exactly the statement <code>R(3,3) = 6</code>. Misère play (triangle = loss) makes the theorem something you can lose to, which is the most intimate way to understand a theorem.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLATE III ================= -->
+<section class="plate wrap" id="plate3">
+  <div class="plate-head"><span class="plate-no">Plate III.</span><h2>The Sierpiński Nebula</h2></div>
+  <p class="lede">Pascal's triangle, photographed through a modular filter. Each star is a binomial coefficient; it shines only if <em>C(n,k) ≢ 0 (mod m)</em>, tinted by its residue. At prime moduli the dust organises itself into perfect self-similar voids — Lucas' theorem, visible to the naked eye.</p>
+
+  <div class="instrument">
+    <div class="controls">
+      <span class="ctl">modulus m <input type="range" id="nebMod" min="2" max="12" value="2" step="1"><output id="nebModOut">2</output></span>
+      <span class="ctl">rows <input type="range" id="nebRows" min="32" max="256" value="128" step="32"><output id="nebRowsOut">128</output></span>
+      <span class="ctl" id="nebPrime" style="color:var(--gold-bright)"></span>
+    </div>
+    <div class="nebula-wrap"><canvas id="nebulaCanvas" width="760" height="420" role="img" aria-label="Pascal's triangle coloured by residue modulo m"></canvas></div>
+    <div class="caption">
+      <span class="fig">Fig. 3 — dust and voids</span>
+      For prime <code>p</code>, Lucas says <code>C(n,k) mod p</code> is the digit-wise product of base-<code>p</code> digits — so a void opens wherever a digit of <code>k</code> exceeds the matching digit of <code>n</code>. At <code>m = 2</code> you get the Sierpiński gasket; at composite moduli the patterns interfere like overlapping nebulae. Slide and see.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLATE IV ================= -->
+<section class="plate wrap" id="plate4">
+  <div class="plate-head"><span class="plate-no">Plate IV.</span><h2>The de Bruijn Zodiac</h2></div>
+  <p class="lede">A ring of 2<sup>k</sup> stars, bright for 1 and faint for 0, arranged so that a window of k consecutive stars shows <em>every</em> k-bit word exactly once per revolution. Nothing repeats, nothing is missed. The tightest possible almanac.</p>
+
+  <div class="instrument">
+    <div class="controls">
+      <span class="ctl">window k
+        <span class="seg" id="zSeg">
+          <button data-k="3" aria-pressed="true">3</button>
+          <button data-k="4" aria-pressed="false">4</button>
+        </span>
+      </span>
+      <button class="btn-quiet" id="zPlay">⏸ pause</button>
+      <button class="btn-quiet" id="zStep">step →</button>
+    </div>
+    <div class="zodiac-layout">
+      <svg class="zodiac-svg" id="zodiacSvg" viewBox="0 0 400 400" role="img" aria-label="de Bruijn sequence arranged on a ring with a rotating reading window"></svg>
+      <div>
+        <div class="statrow" style="margin:0 0 12px"><span>reading <b id="zNow">—</b></span><span>seen <b id="zSeen">0</b> / <b id="zTotal">8</b></span></div>
+        <div class="zledger" id="zLedger"></div>
+      </div>
+    </div>
+    <div class="caption">
+      <span class="fig">Fig. 4 — the perfect almanac</span>
+      A de Bruijn sequence <code>B(2,k)</code> exists because the de Bruijn graph — vertices are (k−1)-bit words, edges append a bit — has every vertex with in-degree = out-degree = 2, so an Eulerian circuit exists. Walk the circuit, read the edge labels, and the zodiac assembles itself. There are <code>2^(2^(k−1))/2^k</code> distinct such rings; this plate shows one.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLATE V ================= -->
+<section class="plate wrap" id="plate5">
+  <div class="plate-head"><span class="plate-no">Plate V.</span><h2>The Partition Clusters</h2></div>
+  <p class="lede">Every way of breaking <em>n</em> into a sum, drawn as a cluster of stars — a Ferrers diagram. Click any cluster and it <em>conjugates</em>: rows become columns, the partition reflects across its diagonal, and a different sum looks back at you. Some clusters are their own reflection. Find them.</p>
+
+  <div class="instrument">
+    <div class="controls">
+      <span class="ctl">n <input type="range" id="partN" min="1" max="10" value="6" step="1"><output id="partNOut">6</output></span>
+      <span class="statrow" style="margin:0"><span>p(n) = <b id="partCount">—</b></span><span>self-conjugate <b id="partSelf">—</b></span><span>p(50) = <b>204 226</b>, for scale</span></span>
+    </div>
+    <div class="part-grid" id="partGrid"></div>
+    <div class="caption">
+      <span class="fig">Fig. 5 — reflections</span>
+      Conjugation is the involution that proves theorems for free: it swaps "at most k parts" with "largest part at most k" instantly. The self-conjugate clusters are in bijection with partitions into <em>distinct odd parts</em> — peel them into nested hooks and watch each hook's length come out odd and different. Euler would have loved a touchscreen.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLATE VI ================= -->
+<section class="plate wrap" id="plate6">
+  <div class="plate-head"><span class="plate-no">Plate VI.</span><h2>A Random Sky <span style="font-style:italic;font-weight:500;font-size:.55em;color:var(--dim)">— Erdős &amp; Rényi, G(n, p)</span></h2></div>
+  <p class="lede">Twenty-four stars. Each of the 276 possible lines was assigned a secret threshold at the moment this page loaded; the slider is the rising probability <em>p</em>, and a line ignites the instant <em>p</em> passes its threshold. Slide slowly. Watch dust become clusters, clusters become a giant, the giant swallow the sky. The phase transition is not a metaphor — it is the actual shape of the curve under your finger.</p>
+
+  <div class="instrument">
+    <div class="controls" style="margin-bottom:6px">
+      <span class="ctl">p <input type="range" id="rskyP" min="0" max="0.30" value="0" step="0.001" style="width:430px;max-width:60vw"><output id="rskyPOut" style="min-width:3.6em">0.000</output></span>
+      <button class="btn-quiet" id="rskyReseed">new sky</button>
+    </div>
+    <div class="threshold-row" id="thresholdRow"></div>
+    <svg class="rsky-svg" id="rskySvg" viewBox="0 0 760 430" role="img" aria-label="A random graph on 24 vertices whose edges appear as p increases"></svg>
+    <div class="statrow"><span>edges <b id="rsEdges">0</b></span><span>components <b id="rsComp">24</b></span><span>largest <b id="rsGiant">1</b></span><span>triangles <b id="rsTri">0</b></span><span id="rsVerdict" style="color:var(--gold-bright)"></span></div>
+    <div class="caption">
+      <span class="fig">Fig. 6 — the two famous doors</span>
+      Near <code>p = 1/n</code> a giant component is born; near <code>p = ln n / n</code> the last isolated star is captured and the sky becomes <em>connected</em>. Both events are sharp: a whisper below the threshold almost nothing, a whisper above almost certainty. You met this graph in CO 342. It did not mention that you'd get to hold the dial.
+    </div>
+  </div>
+</section>
+
+<!-- ================= COLOPHON ================= -->
+<footer class="colophon wrap">
+  <span class="smallcaps">Colophon</span>
+  <p>Set in Cormorant Garamond and Spectral upon a sky of two hundred procedurally twinkling stars. Every count on these plates is computed live, every game is honest, and no constellation was harmed. Errors, should you find any, are bijective with the author's remaining humility.</p>
+  <div class="endmark">⁂</div>
+</footer>
+
+</div>
+
+<!-- ================= GOOSE OVERLAY ================= -->
+<div class="goose-overlay" id="gooseOverlay" role="dialog" aria-modal="true" aria-label="A hidden constellation">
+  <div class="goose-box">
+    <svg viewBox="0 0 430 300" aria-hidden="true">
+      <polyline class="gline" points="55,210 105,185 150,190 195,170 235,130 268,95 300,78 332,72 366,84"/>
+      <line class="gline" x1="332" y1="72" x2="352" y2="56"/>
+      <line class="gline" x1="150" y1="190" x2="170" y2="232"/>
+      <line class="gline" x1="195" y1="170" x2="212" y2="236"/>
+      <circle class="gstar" cx="55" cy="210" r="4"/><circle class="gstar" cx="105" cy="185" r="3.2"/>
+      <circle class="gstar" cx="150" cy="190" r="3.6"/><circle class="gstar" cx="195" cy="170" r="3.2"/>
+      <circle class="gstar" cx="235" cy="130" r="4.2"/><circle class="gstar" cx="268" cy="95" r="3.4"/>
+      <circle class="gstar" cx="300" cy="78" r="3.8"/><circle class="gstar" cx="332" cy="72" r="5"/>
+      <circle class="gstar" cx="352" cy="56" r="2.8"/><circle class="gstar" cx="366" cy="84" r="3"/>
+      <circle class="gstar" cx="170" cy="232" r="2.8"/><circle class="gstar" cx="212" cy="236" r="2.8"/>
+      <text x="318" y="40" fill="#9CA8BC" font-family="IBM Plex Mono,monospace" font-size="10" letter-spacing="3">ANSER</text>
+    </svg>
+    <h3>Vulpecula cum Ansere</h3>
+    <p>The Fox with the Goose — a real constellation, charted by Hevelius in 1687. The brightest star is still named Anser. It has been up there the whole time, tracking <em>us</em>. No further comment.</p>
+    <button class="btn-quiet" id="gooseClose">return to the atlas</button>
+  </div>
+</div>
+
+<!-- SCRIPT APPENDED BELOW -->
+<script>
+(function(){
+"use strict";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= STARFIELD ================= */
+(function(){
+  const cv = document.getElementById("starfield");
+  const ctx = cv.getContext("2d");
+  let stars = [];
+  function build(){
+    cv.width = innerWidth; cv.height = innerHeight;
+    stars = Array.from({length:170}, () => ({
+      x: Math.random()*cv.width, y: Math.random()*cv.height,
+      r: Math.random()*1.3 + .3, ph: Math.random()*Math.PI*2,
+      sp: .4 + Math.random()*1.1
+    }));
+  }
+  function draw(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(const s of stars){
+      const tw = reduceMotion ? .75 : .45 + .55*Math.abs(Math.sin(s.ph + t*0.001*s.sp));
+      ctx.globalAlpha = tw*.85;
+      ctx.fillStyle = "#E8E1D0";
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if(!reduceMotion) requestAnimationFrame(draw);
+  }
+  build(); draw(0);
+  addEventListener("resize", ()=>{ build(); if(reduceMotion) draw(0); });
+})();
+
+/* ================= PLATE I — CATALAN ================= */
+(function(){
+  const grid = document.getElementById("catGrid");
+  const seg = document.getElementById("catSeg");
+  const formula = document.getElementById("catFormula");
+
+  function dyckWords(n){
+    const out=[];
+    (function go(s,o,c){
+      if(s.length===2*n){ out.push(s); return; }
+      if(o<n) go(s+"U",o+1,c);
+      if(c<o) go(s+"D",o,c+1);
+    })("",0,0);
+    return out;
+  }
+  function matchPairs(w){
+    const st=[], pairs=[];
+    for(let i=0;i<w.length;i++){
+      if(w[i]==="U") st.push(i); else pairs.push([st.pop(), i]);
+    }
+    return pairs;
+  }
+  function pathSVG(w,n){
+    const W=128,H=58,base=50,dy=40/Math.max(n,1),dx=W/(2*n);
+    let x=0,y=base,pts=x+","+y;
+    for(const ch of w){ x+=dx; y+= ch==="U" ? -dy : dy; pts+=" "+x.toFixed(1)+","+y.toFixed(1); }
+    return '<svg viewBox="0 0 128 58" aria-hidden="true">'+
+      '<line x1="0" y1="'+base+'" x2="'+W+'" y2="'+base+'" stroke="rgba(156,168,188,.3)" stroke-width="1"/>'+
+      '<polyline points="'+pts+'" fill="none" stroke="#D8B66A" stroke-width="2" stroke-linejoin="round"/>'+
+      '</svg>';
+  }
+  function chordSVG(w,n){
+    const C=29, R=23, m=2*n, pairs=matchPairs(w);
+    let s='<svg viewBox="0 0 58 58" aria-hidden="true">';
+    const pt = i => {
+      const a=-Math.PI/2 + i*2*Math.PI/m;
+      return [C+R*Math.cos(a), C+R*Math.sin(a)];
+    };
+    for(const [a,b] of pairs){
+      const A=pt(a), B=pt(b);
+      s+='<line x1="'+A[0].toFixed(1)+'" y1="'+A[1].toFixed(1)+'" x2="'+B[0].toFixed(1)+'" y2="'+B[1].toFixed(1)+'" stroke="rgba(216,182,106,.75)" stroke-width="1.5"/>';
+    }
+    for(let i=0;i<m;i++){
+      const P=pt(i);
+      s+='<circle cx="'+P[0].toFixed(1)+'" cy="'+P[1].toFixed(1)+'" r="2" fill="#F2D894"/>';
+    }
+    return s+'</svg>';
+  }
+  function buildTree(w){
+    // w = U A D B  ->  node(left=T(A), right=T(B))
+    if(!w.length) return null;
+    let bal=0, j=0;
+    for(let i=0;i<w.length;i++){
+      bal += w[i]==="U" ? 1 : -1;
+      if(bal===0){ j=i; break; }
+    }
+    return { L: buildTree(w.slice(1,j)), R: buildTree(w.slice(j+1)) };
+  }
+  function treeSVG(w,n){
+    const root = buildTree(w);
+    let idx=0, maxD=0;
+    const nodes=[];
+    (function walk(t,d){
+      if(!t) return;
+      walk(t.L,d+1);
+      t.x=idx++; t.y=d; maxD=Math.max(maxD,d); nodes.push(t);
+      walk(t.R,d+1);
+    })(root,0);
+    const W=128,H=52,px=10,py=8;
+    const gx = i => n===1 ? W/2 : px + i*(W-2*px)/(n-1);
+    const gy = d => maxD===0 ? H/2 : py + d*(H-2*py)/maxD;
+    let s='<svg viewBox="0 0 128 52" style="width:100%" aria-hidden="true">';
+    (function edges(t){
+      if(!t) return;
+      for(const c of [t.L,t.R]) if(c){
+        s+='<line x1="'+gx(t.x)+'" y1="'+gy(t.y)+'" x2="'+gx(c.x)+'" y2="'+gy(c.y)+'" stroke="rgba(216,182,106,.55)" stroke-width="1.4"/>';
+        edges(c);
+      }
+    })(root);
+    for(const t of nodes) s+='<circle cx="'+gx(t.x)+'" cy="'+gy(t.y)+'" r="3" fill="#D8B66A"/>';
+    return s+'</svg>';
+  }
+
+  function render(n){
+    const words = dyckWords(n);
+    formula.textContent = "C("+n+") = "+words.length;
+    grid.innerHTML = words.map(w=>{
+      const pretty = w.replace(/U/g,"(").replace(/D/g,")");
+      return '<div class="cat-card" tabindex="0" role="button" aria-label="Catalan object '+pretty+'">'+
+        '<div class="cat-views">'+pathSVG(w,n)+chordSVG(w,n)+'</div>'+
+        treeSVG(w,n)+
+        '<div class="word">'+pretty+'</div>'+
+      '</div>';
+    }).join("");
+  }
+  grid.addEventListener("click", e=>{
+    const c = e.target.closest(".cat-card");
+    if(c) c.classList.toggle("lit");
+  });
+  grid.addEventListener("keydown", e=>{
+    if(e.key==="Enter" || e.key===" "){
+      const c = e.target.closest(".cat-card");
+      if(c){ e.preventDefault(); c.classList.toggle("lit"); }
+    }
+  });
+  seg.addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    render(parseInt(b.dataset.n,10));
+  });
+  render(3);
+})();
+
+/* ================= PLATE II — SIM ================= */
+(function(){
+  const svg = document.getElementById("simBoard");
+  const msg = document.getElementById("simMsg");
+  const NS = "http://www.w3.org/2000/svg";
+  const labels = ["α","β","γ","δ","ε","ζ"];
+  const C=210, R=160, RL=188;
+  const P = Array.from({length:6}, (_,i)=>{
+    const a = -Math.PI/2 + i*Math.PI/3;
+    return [C+R*Math.cos(a), C+R*Math.sin(a), C+RL*Math.cos(a), C+RL*Math.sin(a)];
+  });
+  const E=[]; for(let i=0;i<6;i++) for(let j=i+1;j<6;j++) E.push([i,j]);
+  let owner, over, playerTurn, scores={you:0, ai:0, games:0};
+  const visual=[], hit=[];
+
+  function el(tag, attrs){
+    const n=document.createElementNS(NS,tag);
+    for(const k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  // build once
+  E.forEach(([a,b],idx)=>{
+    const v = el("line",{x1:P[a][0],y1:P[a][1],x2:P[b][0],y2:P[b][1],class:"sim-edge"});
+    const h = el("line",{x1:P[a][0],y1:P[a][1],x2:P[b][0],y2:P[b][1],stroke:"transparent","stroke-width":"16"});
+    h.style.cursor="pointer";
+    h.addEventListener("click",()=>playerMove(idx));
+    visual.push(v); hit.push(h);
+    svg.appendChild(v);
+  });
+  hit.forEach(h=>svg.appendChild(h));
+  P.forEach((p,i)=>{
+    svg.appendChild(el("circle",{cx:p[0],cy:p[1],r:6,class:"sim-star"}));
+    const t=el("text",{x:p[2],y:p[3],class:"sim-label","text-anchor":"middle","dominant-baseline":"middle"});
+    t.textContent=labels[i]; svg.appendChild(t);
+  });
+
+  function adj(color){
+    const A=Array.from({length:6},()=>Array(6).fill(false));
+    E.forEach(([a,b],i)=>{ if(owner[i]===color){A[a][b]=A[b][a]=true;} });
+    return A;
+  }
+  function triangleClosed(idx,color){
+    const [u,v]=E[idx], A=adj(color);
+    for(let w=0;w<6;w++) if(w!==u&&w!==v&&A[u][w]&&A[v][w]) return [u,v,w];
+    return null;
+  }
+  function edgeIndex(a,b){ if(a>b)[a,b]=[b,a]; return E.findIndex(e=>e[0]===a&&e[1]===b); }
+  function highlightTri(tri,colorClass){
+    const [a,b,c]=tri;
+    [edgeIndex(a,b),edgeIndex(a,c),edgeIndex(b,c)].forEach(i=>visual[i].classList.add("fatal"));
+  }
+  function endGame(playerLost, tri){
+    over=true;
+    visual.forEach(v=>v.classList.add("disabled"));
+    if(playerLost){
+      scores.ai++; highlightTri(tri,"gold");
+      msg.textContent="A gold triangle. The chart is marred — the Archivist bows, victorious.";
+    }else{
+      scores.you++; highlightTri(tri,"rose");
+      msg.textContent="The Archivist completed a rose triangle. The sky is yours. ✦";
+    }
+    scores.games++;
+    document.getElementById("scoreYou").textContent=scores.you;
+    document.getElementById("scoreAI").textContent=scores.ai;
+    document.getElementById("scoreGames").textContent=scores.games;
+  }
+  function playerMove(idx){
+    if(over || !playerTurn || owner[idx]!==0) return;
+    owner[idx]=1; visual[idx].classList.add("gold");
+    const tri=triangleClosed(idx,1);
+    if(tri){ endGame(true,tri); return; }
+    playerTurn=false;
+    msg.textContent="The Archivist considers…";
+    setTimeout(aiMove, reduceMotion?60:520);
+  }
+  function aiMove(){
+    if(over) return;
+    const empty=[]; owner.forEach((o,i)=>{ if(o===0) empty.push(i); });
+    if(!empty.length) { msg.textContent="The board filled with no triangle — which Ramsey forbids. Frame this screenshot."; over=true; return; }
+    const A=adj(2);
+    const fatal = i => { const[u,v]=E[i]; for(let w=0;w<6;w++) if(w!==u&&w!==v&&A[u][w]&&A[v][w]) return true; return false; };
+    const safe = empty.filter(i=>!fatal(i));
+    let pick;
+    if(!safe.length){
+      pick = empty[0]; // forced loss
+    }else{
+      // minimize future self-traps: count w where exactly one of (u,w),(v,w) is rose
+      let best=1e9, cands=[];
+      for(const i of safe){
+        const [u,v]=E[i]; let traps=0;
+        for(let w=0;w<6;w++){ if(w===u||w===v) continue; if(A[u][w]!==A[v][w]) traps++; }
+        if(traps<best){ best=traps; cands=[i]; } else if(traps===best) cands.push(i);
+      }
+      pick = cands[Math.floor(Math.random()*cands.length)];
+    }
+    owner[pick]=2; visual[pick].classList.add("rose");
+    const tri=triangleClosed(pick,2);
+    if(tri){ endGame(false,tri); return; }
+    playerTurn=true;
+    const left=owner.filter(o=>o===0).length;
+    msg.textContent="Your move — "+left+" lines remain unclaimed.";
+  }
+  function reset(){
+    owner=Array(15).fill(0); over=false; playerTurn=true;
+    visual.forEach(v=>{ v.setAttribute("class","sim-edge"); });
+    msg.textContent="Your move. Claim any line.";
+  }
+  document.getElementById("simReset").addEventListener("click",reset);
+  reset();
+})();
+
+/* ================= PLATE III — NEBULA ================= */
+(function(){
+  const cv=document.getElementById("nebulaCanvas"), ctx=cv.getContext("2d");
+  const mIn=document.getElementById("nebMod"), rIn=document.getElementById("nebRows");
+  const mOut=document.getElementById("nebModOut"), rOut=document.getElementById("nebRowsOut");
+  const primeNote=document.getElementById("nebPrime");
+  const isPrime=m=>{ if(m<2)return false; for(let d=2;d*d<=m;d++) if(m%d===0) return false; return true; };
+  let raf=null;
+  function draw(){
+    raf=null;
+    const m=+mIn.value, R=+rIn.value;
+    mOut.textContent=m; rOut.textContent=R;
+    primeNote.textContent = isPrime(m) ? "m prime — lucas regime" : "m composite — interference";
+    ctx.fillStyle="#070B16"; ctx.fillRect(0,0,cv.width,cv.height);
+    const s=cv.width/R, rh=cv.height/R;
+    const colors=[];
+    for(let r=1;r<m;r++){
+      const hue=(44 + (r-1)*137.5)%360;
+      colors[r]="hsla("+hue.toFixed(0)+",60%,64%,.95)";
+    }
+    let row=new Uint16Array(R+1); row[0]=1;
+    for(let n=0;n<R;n++){
+      const x0=(cv.width-(n+1)*s)/2, y=n*rh;
+      for(let k=0;k<=n;k++){
+        const v=row[k];
+        if(v!==0){
+          ctx.fillStyle=colors[v];
+          ctx.fillRect(x0+k*s, y, Math.max(s-(s>3?0.6:0),0.5), Math.max(rh-(rh>3?0.6:0),0.5));
+        }
+      }
+      // next row, in place right-to-left
+      for(let k=n+1;k>0;k--) row[k]=(row[k]+row[k-1])%m;
+    }
+  }
+  const queue=()=>{ if(!raf) raf=requestAnimationFrame(draw); };
+  mIn.addEventListener("input",queue); rIn.addEventListener("input",queue);
+  draw();
+})();
+
+/* ================= PLATE IV — ZODIAC ================= */
+(function(){
+  const SEQ={3:"00010111",4:"0000100110101111"};
+  const svg=document.getElementById("zodiacSvg");
+  const ledger=document.getElementById("zLedger");
+  const nowOut=document.getElementById("zNow"), seenOut=document.getElementById("zSeen"), totOut=document.getElementById("zTotal");
+  const playBtn=document.getElementById("zPlay"), stepBtn=document.getElementById("zStep"), seg=document.getElementById("zSeg");
+  const NS="http://www.w3.org/2000/svg";
+  let k=3, seq, N, pos, seen, timer=null, playing=!reduceMotion;
+  let starEls=[], arcEl;
+
+  function el(t,a){ const n=document.createElementNS(NS,t); for(const x in a) n.setAttribute(x,a[x]); return n; }
+  const C=200, R=150;
+  const ang=i=>-Math.PI/2 + i*2*Math.PI/N;
+
+  function build(){
+    seq=SEQ[k]; N=seq.length; pos=0; seen=new Set();
+    svg.innerHTML=""; starEls=[];
+    svg.appendChild(el("circle",{cx:C,cy:C,r:R,fill:"none",stroke:"rgba(216,182,106,.18)","stroke-width":"1"}));
+    arcEl=el("path",{fill:"none",stroke:"#D8B66A","stroke-width":"30","stroke-linecap":"round",opacity:".22"});
+    svg.appendChild(arcEl);
+    for(let i=0;i<N;i++){
+      const a=ang(i), x=C+R*Math.cos(a), y=C+R*Math.sin(a);
+      const bit=seq[i];
+      const c=el("circle",{cx:x,cy:y,r:bit==="1"?6:3,fill:bit==="1"?"#F2D894":"#5A6678"});
+      if(bit==="1") c.setAttribute("filter","drop-shadow(0 0 5px rgba(242,216,148,.85))");
+      svg.appendChild(c); starEls.push(c);
+      const lx=C+(R+22)*Math.cos(a), ly=C+(R+22)*Math.sin(a);
+      const t=el("text",{x:lx,y:ly,class:"zbit"+(bit==="1"?" one":""),"text-anchor":"middle","dominant-baseline":"middle"});
+      t.textContent=bit; svg.appendChild(t);
+    }
+    const mid=el("text",{x:C,y:C,"text-anchor":"middle","dominant-baseline":"middle",fill:"#F2D894","font-family":"IBM Plex Mono,monospace","font-size":"30","letter-spacing":"6"});
+    mid.id="zMid"; svg.appendChild(mid);
+    const sub=el("text",{x:C,y:C+30,"text-anchor":"middle",fill:"#9CA8BC","font-family":"IBM Plex Mono,monospace","font-size":"10","letter-spacing":"3"});
+    sub.textContent="WINDOW"; svg.appendChild(sub);
+    // ledger
+    totOut.textContent=N;
+    ledger.innerHTML="";
+    for(let i=0;i<N;i++){
+      const w=i.toString(2).padStart(k,"0");
+      const d=document.createElement("div");
+      d.className="zword"; d.dataset.w=w; d.textContent=w;
+      ledger.appendChild(d);
+    }
+    read(false);
+  }
+  function read(advanceSeen){
+    let w="";
+    for(let i=0;i<k;i++) w+=seq[(pos+i)%N];
+    nowOut.textContent=w;
+    document.getElementById("zMid").textContent=w;
+    seen.add(w);
+    seenOut.textContent=seen.size;
+    ledger.querySelectorAll(".zword").forEach(d=>{
+      d.classList.toggle("seen", seen.has(d.dataset.w));
+      d.classList.toggle("now", d.dataset.w===w);
+    });
+    // arc
+    const half=Math.PI/N;
+    let a0=ang(pos)-half, a1=ang(pos+k-1)+half;
+    if(a1<a0) a1+=2*Math.PI;
+    const large=(a1-a0)>Math.PI?1:0;
+    const x0=C+R*Math.cos(a0), y0=C+R*Math.sin(a0);
+    const x1=C+R*Math.cos(a1), y1=C+R*Math.sin(a1);
+    arcEl.setAttribute("d","M "+x0.toFixed(1)+" "+y0.toFixed(1)+" A "+R+" "+R+" 0 "+large+" 1 "+x1.toFixed(1)+" "+y1.toFixed(1));
+  }
+  function step(){ pos=(pos+1)%N; read(true); }
+  function setPlaying(p){
+    playing=p;
+    playBtn.textContent = playing ? "⏸ pause" : "▶ play";
+    clearInterval(timer); timer=null;
+    if(playing) timer=setInterval(step, 900);
+  }
+  playBtn.addEventListener("click",()=>setPlaying(!playing));
+  stepBtn.addEventListener("click",()=>{ setPlaying(false); step(); });
+  seg.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    k=parseInt(b.dataset.k,10); build();
+  });
+  build(); setPlaying(playing);
+})();
+
+/* ================= PLATE V — PARTITIONS ================= */
+(function(){
+  const grid=document.getElementById("partGrid");
+  const nIn=document.getElementById("partN"), nOut=document.getElementById("partNOut");
+  const cntOut=document.getElementById("partCount"), selfOut=document.getElementById("partSelf");
+
+  function partitions(n,max){
+    if(n===0) return [[]];
+    const out=[];
+    for(let k=Math.min(max,n);k>=1;k--)
+      for(const p of partitions(n-k,k)) out.push([k].concat(p));
+    return out;
+  }
+  const conj=lam=>{
+    if(!lam.length) return [];
+    const c=[];
+    for(let j=0;j<lam[0];j++) c.push(lam.filter(x=>x>j).length);
+    return c;
+  };
+  const same=(a,b)=>a.length===b.length && a.every((x,i)=>x===b[i]);
+
+  function dotsOf(lam){
+    const d=[];
+    lam.forEach((len,i)=>{ for(let j=0;j<len;j++) d.push([i,j]); });
+    return d;
+  }
+  function render(){
+    const n=+nIn.value; nOut.textContent=n;
+    const ps=partitions(n,n);
+    cntOut.textContent=ps.length;
+    let selfc=0;
+    grid.innerHTML="";
+    ps.forEach(lam=>{
+      const isSelf=same(lam,conj(lam)); if(isSelf) selfc++;
+      const cell=15, pad=9;
+      const dim=Math.max(lam.length, lam[0]||1);
+      const side=pad*2+dim*cell;
+      const card=document.createElement("div");
+      card.className="part-card"; card.tabIndex=0;
+      card.setAttribute("role","button");
+      card.dataset.lam=JSON.stringify(lam);
+      card.dataset.conj="0";
+      const svgNS="http://www.w3.org/2000/svg";
+      const svg=document.createElementNS(svgNS,"svg");
+      svg.setAttribute("width",side); svg.setAttribute("height",side);
+      svg.setAttribute("viewBox","0 0 "+side+" "+side);
+      dotsOf(lam).forEach(([i,j])=>{
+        const c=document.createElementNS(svgNS,"circle");
+        c.setAttribute("class","pdot");
+        c.setAttribute("r","4.2");
+        c.setAttribute("cx", pad+j*cell+cell/2);
+        c.setAttribute("cy", pad+i*cell+cell/2);
+        c.dataset.i=i; c.dataset.j=j;
+        svg.appendChild(c);
+      });
+      const label=document.createElement("div");
+      label.className="plabel";
+      label.textContent=lam.join("+");
+      card.appendChild(svg); card.appendChild(label);
+      card.__lam=lam; card.__cell=cell; card.__pad=pad; card.__self=isSelf; card.__label=label;
+      grid.appendChild(card);
+    });
+    selfOut.textContent=selfc;
+  }
+  function flip(card){
+    const flipped = card.dataset.conj==="1";
+    const toConj = !flipped;
+    card.dataset.conj = toConj ? "1" : "0";
+    card.classList.toggle("conj", toConj);
+    const {__cell:cell, __pad:pad}=card;
+    card.querySelectorAll(".pdot").forEach(d=>{
+      const i=+d.dataset.i, j=+d.dataset.j;
+      const ni = toConj ? j : i, nj = toConj ? i : j;
+      d.setAttribute("cx", pad+nj*cell+cell/2);
+      d.setAttribute("cy", pad+ni*cell+cell/2);
+    });
+    const shown = toConj ? conj(card.__lam) : card.__lam;
+    card.__label.textContent = shown.join("+") + (card.__self ? "  ✶ its own reflection" : (toConj ? "  (conjugate)" : ""));
+  }
+  grid.addEventListener("click",e=>{
+    const c=e.target.closest(".part-card"); if(c) flip(c);
+  });
+  grid.addEventListener("keydown",e=>{
+    if(e.key==="Enter"||e.key===" "){
+      const c=e.target.closest(".part-card");
+      if(c){ e.preventDefault(); flip(c); }
+    }
+  });
+  nIn.addEventListener("input",render);
+  render();
+})();
+
+/* ================= PLATE VI — RANDOM SKY ================= */
+(function(){
+  const svgEl=document.getElementById("rskySvg");
+  const pIn=document.getElementById("rskyP"), pOut=document.getElementById("rskyPOut");
+  const NS="http://www.w3.org/2000/svg";
+  const N=24, W=760, H=430, M=34;
+  let seed=20260610;
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+  let pts=[], edges=[], edgeEls=[], starEls=[];
+
+  function el(t,a){ const n=document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); return n; }
+
+  function buildSky(){
+    const rng=mulberry32(seed);
+    pts=[];
+    let guard=0;
+    while(pts.length<N && guard++<8000){
+      const x=M+rng()*(W-2*M), y=M+rng()*(H-2*M);
+      if(pts.every(p=>(p[0]-x)**2+(p[1]-y)**2 > 55*55)) pts.push([x,y]);
+    }
+    while(pts.length<N) pts.push([M+Math.random()*(W-2*M), M+Math.random()*(H-2*M)]);
+    edges=[];
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++) edges.push({i,j,t:rng()});
+    svgEl.innerHTML=""; edgeEls=[]; starEls=[];
+    edges.forEach(e=>{
+      const L=el("line",{x1:pts[e.i][0],y1:pts[e.i][1],x2:pts[e.j][0],y2:pts[e.j][1],class:"r-edge"});
+      L.style.display="none";
+      svgEl.appendChild(L); edgeEls.push(L);
+    });
+    pts.forEach(p=>{
+      const c=el("circle",{cx:p[0],cy:p[1],r:3.5,class:"r-star"});
+      svgEl.appendChild(c); starEls.push(c);
+    });
+    update();
+  }
+  function update(){
+    const p=+pIn.value;
+    pOut.textContent=p.toFixed(3);
+    // union-find
+    const par=Array.from({length:N},(_,i)=>i);
+    const find=x=>{ while(par[x]!==x){ par[x]=par[par[x]]; x=par[x]; } return x; };
+    const A=Array.from({length:N},()=>Array(N).fill(false));
+    let m=0;
+    edges.forEach((e,idx)=>{
+      const on=e.t<p;
+      edgeEls[idx].style.display = on ? "" : "none";
+      if(on){ m++; A[e.i][e.j]=A[e.j][e.i]=true; const a=find(e.i),b=find(e.j); if(a!==b) par[a]=b; }
+    });
+    const compOf=Array.from({length:N},(_,i)=>find(i));
+    const sizes={};
+    compOf.forEach(c=>sizes[c]=(sizes[c]||0)+1);
+    const comps=Object.keys(sizes).length;
+    let giantRoot=null, giant=0;
+    for(const c in sizes) if(sizes[c]>giant){ giant=sizes[c]; giantRoot=+c; }
+    let tri=0;
+    for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){ if(!A[a][b])continue; for(let c=b+1;c<N;c++) if(A[a][c]&&A[b][c]) tri++; }
+    starEls.forEach((s,i)=>s.classList.toggle("giant", giant>1 && compOf[i]===giantRoot));
+    edgeEls.forEach((L,idx)=>{
+      const e=edges[idx];
+      L.classList.toggle("giant", e.t<p && giant>1 && compOf[e.i]===giantRoot);
+    });
+    document.getElementById("rsEdges").textContent=m;
+    document.getElementById("rsComp").textContent=comps;
+    document.getElementById("rsGiant").textContent=giant;
+    document.getElementById("rsTri").textContent=tri;
+    document.getElementById("rsVerdict").textContent =
+      comps===1 ? "— the sky is one constellation ✦"
+      : giant>=N/2 ? "— a giant has risen"
+      : "";
+  }
+  function placeThresholds(){
+    const row=document.getElementById("thresholdRow");
+    row.style.width=pIn.offsetWidth+"px";
+    const shift=pIn.getBoundingClientRect().left - row.parentElement.getBoundingClientRect().left - parseFloat(getComputedStyle(row.parentElement).paddingLeft);
+    row.style.marginLeft=Math.max(0,shift)+"px";
+    row.innerHTML="";
+    const max=+pIn.max;
+    [[1/N,"1/n"],[Math.log(N)/N,"ln n / n"]].forEach(([v,lab])=>{
+      const s=document.createElement("span");
+      s.style.left=(v/max*100)+"%";
+      s.textContent="↑ "+lab;
+      row.appendChild(s);
+    });
+  }
+  pIn.addEventListener("input",update);
+  document.getElementById("rskyReseed").addEventListener("click",()=>{ seed=(Math.random()*1e9)|0; buildSky(); });
+  addEventListener("resize",placeThresholds);
+  buildSky(); placeThresholds();
+})();
+
+/* ================= GOOSE ================= */
+(function(){
+  const ov=document.getElementById("gooseOverlay");
+  document.getElementById("moonBtn").addEventListener("click",()=>{
+    ov.classList.remove("open"); void ov.offsetWidth; ov.classList.add("open");
+  });
+  document.getElementById("gooseClose").addEventListener("click",()=>ov.classList.remove("open"));
+  ov.addEventListener("click",e=>{ if(e.target===ov) ov.classList.remove("open"); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") ov.classList.remove("open"); });
+})();
+
+})();
+</script>
+</body>
+</html>
