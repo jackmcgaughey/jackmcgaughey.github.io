@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DC or Not DC? — Crowd-sourced study space occupancy</title>
+<meta name="description" content="A crowd-sourced occupancy tracker for study space in the Davis Centre at the University of Waterloo, designed around the cold-start problem: a time-of-day prior answers the question even when nobody has reported.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0B0D10;
+  --bg-2:#12151A;
+  --panel:#171B21;
+  --panel-2:#1D222A;
+  --hair:rgba(255,255,255,.09);
+  --hair-2:rgba(255,255,255,.055);
+  --ink:#ECEFF3;
+  --dim:#98A1AE;
+  --dimmer:#6B7480;
+  --gold:#F5C24C;
+  --gold-dim:#8A6E28;
+  --go:#5FD08A;
+  --maybe:#F5C24C;
+  --no:#E8705F;
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--gold)}
+button{font-family:inherit;cursor:pointer;color:inherit;border:none;background:none}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+
+.wrap{max-width:860px;margin:0 auto;padding:0 18px}
+
+.mono{font-family:var(--mono)}
+.eyebrow{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+
+/* ---------- top bar ---------- */
+.topbar{
+  border-bottom:1px solid var(--hair-2);
+  padding:14px 0;
+  position:sticky;top:0;z-index:50;
+  background:rgba(11,13,16,.88);
+  backdrop-filter:blur(12px);
+}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.back{
+  font-size:.82rem;color:var(--dim);text-decoration:none;
+  display:inline-flex;align-items:center;gap:7px;transition:color .15s;
+}
+.back:hover{color:var(--ink)}
+.demo-badge{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold-dim);
+  padding:4px 9px;border-radius:999px;white-space:nowrap;
+}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 10px;text-align:center}
+.hero h1{
+  font-size:clamp(2.1rem,7vw,3.3rem);
+  font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:16px 0 14px;
+}
+.hero h1 .q{color:var(--gold)}
+.hero .lede{
+  color:var(--dim);max-width:52ch;margin:0 auto;font-size:1.02rem;
+}
+
+/* ---------- verdict ---------- */
+.verdict{
+  margin:30px 0 8px;
+  background:linear-gradient(160deg,var(--panel) 0%,var(--bg-2) 100%);
+  border:1px solid var(--hair);
+  border-radius:var(--r);
+  padding:26px 22px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.verdict::before{
+  content:'';position:absolute;inset:0 0 auto 0;height:3px;
+  background:var(--verdict-color,var(--gold));
+  transition:background .4s;
+}
+.verdict-answer{
+  font-size:clamp(2.4rem,9vw,3.6rem);
+  font-weight:700;letter-spacing:-.035em;line-height:1;
+  color:var(--verdict-color,var(--gold));
+  transition:color .4s;
+}
+.verdict-sub{margin-top:12px;color:var(--dim);font-size:.96rem}
+.verdict-sub strong{color:var(--ink);font-weight:600}
+.verdict-meta{
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--hair-2);
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
+  color:var(--dimmer);text-transform:uppercase;
+}
+
+/* ---------- controls ---------- */
+.controls{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  margin:18px 0 6px;padding:14px 16px;
+  background:var(--bg-2);border:1px solid var(--hair-2);border-radius:var(--r);
+}
+.ctl-label{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dimmer);margin-right:2px;
+}
+.toggle{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 13px;border-radius:999px;
+  border:1px solid var(--hair);background:var(--panel);
+  font-size:.82rem;color:var(--dim);transition:all .16s;
+}
+.toggle:hover{border-color:var(--gold-dim);color:var(--ink)}
+.toggle[aria-pressed="true"]{
+  background:rgba(245,194,76,.12);border-color:var(--gold);color:var(--gold);font-weight:500;
+}
+.toggle .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.toggle[aria-pressed="true"] .dot{opacity:1}
+
+.clock{display:flex;align-items:center;gap:11px;flex:1;min-width:230px}
+.clock input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;
+  background:var(--hair);outline:none;
+}
+.clock input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--gold);cursor:pointer;border:2px solid var(--bg);
+}
+.clock input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;background:var(--gold);
+  cursor:pointer;border:2px solid var(--bg);
+}
+.clock-read{
+  font-family:var(--mono);font-size:.84rem;color:var(--ink);
+  min-width:74px;text-align:right;font-weight:500;
+  padding:3px 7px;border-radius:7px;border:1px solid transparent;transition:all .15s;
+}
+.clock-read.simulated{color:var(--gold);border-color:var(--gold-dim);cursor:pointer}
+.clock-read.simulated:hover{background:rgba(245,194,76,.1)}
+
+/* ---------- zones ---------- */
+.section-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;margin:34px 0 14px;flex-wrap:wrap;
+}
+.section-head h2{font-size:1.16rem;font-weight:600;letter-spacing:-.015em}
+.section-head .hint{font-size:.78rem;color:var(--dimmer)}
+
+.zones{display:flex;flex-direction:column;gap:11px}
+.zone{
+  background:var(--panel);border:1px solid var(--hair-2);
+  border-radius:var(--r);padding:16px 17px;transition:border-color .18s;
+}
+.zone:hover{border-color:var(--hair)}
+.zone.best{border-color:var(--gold-dim);background:linear-gradient(160deg,rgba(245,194,76,.055),var(--panel) 60%)}
+
+.zone-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.zone-name{font-weight:600;font-size:1.02rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.best-tag{
+  font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--bg);background:var(--gold);padding:3px 7px;border-radius:4px;font-weight:600;
+}
+.zone-sub{font-size:.8rem;color:var(--dimmer);margin-top:2px}
+.zone-pct{
+  font-family:var(--mono);font-size:1.32rem;font-weight:600;
+  line-height:1;text-align:right;white-space:nowrap;
+}
+.zone-status{font-size:.74rem;color:var(--dim);text-align:right;margin-top:4px;white-space:nowrap}
+
+.bar{height:6px;border-radius:3px;background:var(--panel-2);margin:13px 0 9px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1),background .4s}
+
+.zone-meta{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;color:var(--dimmer);
+}
+.src{padding:2px 7px;border-radius:4px;border:1px solid var(--hair);white-space:nowrap}
+.src.live{color:var(--go);border-color:rgba(95,208,138,.35)}
+.src.stale{color:var(--dimmer)}
+
+.report-row{
+  display:flex;gap:7px;margin-top:13px;padding-top:13px;
+  border-top:1px solid var(--hair-2);flex-wrap:wrap;
+}
+.report-row .rl{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dimmer);align-self:center;margin-right:3px;
+}
+.rbtn{
+  flex:1;min-width:66px;padding:9px 6px;border-radius:9px;
+  border:1px solid var(--hair);background:var(--panel-2);
+  font-size:.76rem;font-weight:500;color:var(--dim);
+  transition:all .14s;
+}
+.rbtn:hover{color:var(--ink);border-color:var(--c,var(--gold));background:var(--bg-2)}
+.rbtn:active{transform:scale(.96)}
+
+/* ---------- explainer ---------- */
+.notes{margin:44px 0 0}
+.note-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin-top:16px}
+.note{
+  background:var(--bg-2);border:1px solid var(--hair-2);
+  border-radius:var(--r);padding:17px 17px 18px;
+}
+.note h3{
+  font-size:.82rem;font-weight:600;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;letter-spacing:-.005em;
+}
+.note h3 .n{
+  font-family:var(--mono);font-size:.64rem;color:var(--gold);
+  border:1px solid var(--gold-dim);border-radius:4px;padding:2px 6px;font-weight:500;
+}
+.note p{font-size:.85rem;color:var(--dim);line-height:1.62}
+
+.postmortem{
+  margin-top:14px;background:var(--panel);border:1px solid var(--hair-2);
+  border-left:2px solid var(--gold-dim);border-radius:10px;padding:17px 19px;
+}
+.postmortem p{font-size:.88rem;color:var(--dim);line-height:1.68}
+.postmortem p+p{margin-top:9px}
+.postmortem strong{color:var(--ink);font-weight:600}
+
+/* ---------- math peek ---------- */
+.math{
+  margin-top:16px;background:var(--bg-2);border:1px solid var(--hair-2);
+  border-radius:var(--r);overflow:hidden;
+}
+.math summary{
+  padding:14px 17px;cursor:pointer;font-size:.85rem;font-weight:500;
+  color:var(--dim);list-style:none;display:flex;align-items:center;gap:9px;
+}
+.math summary::-webkit-details-marker{display:none}
+.math summary::before{content:'▸';color:var(--gold);transition:transform .2s;display:inline-block}
+.math[open] summary::before{transform:rotate(90deg)}
+.math summary:hover{color:var(--ink)}
+.math-body{padding:0 17px 17px;border-top:1px solid var(--hair-2)}
+.math-body pre{
+  font-family:var(--mono);font-size:.74rem;line-height:1.75;color:var(--dim);
+  white-space:pre-wrap;margin-top:13px;
+}
+.math-body .k{color:var(--gold)}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);
+  background:var(--panel);border:1px solid var(--gold-dim);
+  color:var(--ink);padding:11px 19px;border-radius:999px;
+  font-size:.85rem;box-shadow:0 10px 34px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;z-index:100;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+footer{
+  margin-top:52px;padding:26px 0 40px;border-top:1px solid var(--hair-2);
+  text-align:center;font-size:.8rem;color:var(--dimmer);
+}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+@media (max-width:560px){
+  .hero{padding:32px 0 6px}
+  .zone-pct{font-size:1.15rem}
+  .rbtn{min-width:0;font-size:.72rem;padding:9px 4px}
+  .report-row .rl{width:100%;margin-bottom:4px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="projects.html">&larr; Jack McGaughey</a>
+    <span class="demo-badge">Local demo &middot; no server</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">University of Waterloo &middot; Davis Centre</div>
+    <h1>DC or Not DC<span class="q">?</span></h1>
+    <p class="lede">
+      Before you walk fifteen minutes to a building that turns out to be full &mdash;
+      ask. Five seconds of your time keeps the answer true for everyone else.
+    </p>
+  </header>
+
+  <section class="verdict" id="verdict" aria-live="polite">
+    <div class="verdict-answer" id="verdictAnswer">&mdash;</div>
+    <div class="verdict-sub" id="verdictSub"></div>
+    <div class="verdict-meta" id="verdictMeta"></div>
+  </section>
+
+  <div class="controls">
+    <span class="ctl-label">Model</span>
+    <button class="toggle" id="examToggle" aria-pressed="false">
+      <span class="dot"></span><span>Exam season</span>
+    </button>
+    <div class="clock">
+      <span class="ctl-label">Clock</span>
+      <input type="range" id="clockRange" min="0" max="1435" step="5" aria-label="Time of day the model assumes">
+      <button class="clock-read mono" id="clockRead" title="Back to live time">&mdash;</button>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>Spaces inside DC</h2>
+    <span class="hint">Tap a level to report &mdash; that's the whole interaction</span>
+  </div>
+
+  <div class="zones" id="zones"></div>
+
+  <section class="notes">
+    <div class="eyebrow">The part I got wrong last time</div>
+    <div class="postmortem">
+      <p>
+        <strong>The first version of this never got used.</strong> It was a reporting tool
+        that was worthless until enough people reported, which meant it was worthless when
+        the first person opened it, which meant there was never a second person. I built
+        the tool and assumed the adoption.
+      </p>
+      <p>
+        This rebuild starts from the opposite end: <strong>the page has to be useful with
+        zero contributors.</strong> Everything below is in service of that.
+      </p>
+    </div>
+
+    <div class="note-grid">
+      <div class="note">
+        <h3><span class="n">01</span> Answer without data</h3>
+        <p>
+          Occupancy is mostly predictable &mdash; a Tuesday 2pm in the Fishbowl looks like
+          every other Tuesday 2pm. A per-space time-of-day prior gives a real answer before
+          anyone has ever reported. Reports correct the prior; they aren't the only thing
+          holding it up.
+        </p>
+      </div>
+      <div class="note">
+        <h3><span class="n">02</span> One building, not a campus</h3>
+        <p>
+          The old version covered every study space on campus, which split thin traffic
+          across dozens of rooms so nothing ever looked fresh. Scoping to DC concentrates
+          the same number of reporters into six spaces, where a handful of people per hour
+          is enough to stay live.
+        </p>
+      </div>
+      <div class="note">
+        <h3><span class="n">03</span> Reporting costs nothing</h3>
+        <p>
+          One tap, four choices, no account, no confirm step, no permission prompt. You
+          report from the chair you're already sitting in. If it costs more than the
+          five seconds it saves someone else, it doesn't get done.
+        </p>
+      </div>
+      <div class="note">
+        <h3><span class="n">04</span> Stale data expires loudly</h3>
+        <p>
+          A report decays with a 25-minute half-life and is dropped after three hours. The
+          interface always says which spaces are running on live reports and which are
+          running on the model &mdash; a confident wrong answer is what kills trust.
+        </p>
+      </div>
+    </div>
+
+    <details class="math">
+      <summary>How the number is actually computed</summary>
+      <div class="math-body">
+        <pre><span class="k">prior</span>(zone, t)   = base(zone) x hourCurve(t) x dayFactor(t) x examFactor
+
+<span class="k">weight</span>(report)   = 0.5 ^ (ageMinutes / 25)        dropped past 180 min
+
+<span class="k">occupancy</span>       = ( SUM w(i) x level(i) + Wp x prior )
+                  -----------------------------------
+                       ( SUM w(i) + Wp )          Wp = 0.9
+
+<span class="k">liveShare</span>       = SUM w(i) / ( SUM w(i) + Wp )</pre>
+        <p style="font-size:.82rem;color:var(--dimmer);margin-top:13px;line-height:1.6">
+          One fresh report roughly matches the prior's weight, so a single person can move
+          the number without a lone mistaken tap overwhelming it. Three fresh reports and
+          the crowd owns the answer. <em>liveShare</em> is what drives the
+          <span class="mono" style="color:var(--go)">live</span> /
+          <span class="mono">predicted</span> label on each space.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    Reports are stored in your browser only &mdash; this is a working demo of the design,
+    not a live deployment. &nbsp;&middot;&nbsp;
+    <button id="resetBtn" style="color:var(--gold);font-size:.8rem;text-decoration:underline">Clear my reports</button>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var KEY = 'dcornot.reports.v1';
+  var HALF_LIFE = 25;      // minutes
+  var MAX_AGE   = 180;     // minutes
+  var PRIOR_W   = 0.9;
+
+  var ZONES = [
+    {id:'fishbowl', name:'The Fishbowl',     sub:'3rd floor computer lab',   base:0.74},
+    {id:'dclib',    name:'DC Library',       sub:'Lower levels, quiet',      base:0.66},
+    {id:'quiet3',   name:'3rd Floor Quiet',  sub:'Silent individual study',  base:0.61},
+    {id:'floor4',   name:'4th Floor Tables', sub:'Group work, whiteboards',  base:0.52},
+    {id:'cnd',      name:'C&D Seating',      sub:'Coffee and Donut, ground', base:0.46},
+    {id:'atrium',   name:'Ground Atrium',    sub:'Open tables, noisy',       base:0.40}
+  ];
+
+  var LEVELS = [
+    {label:'Empty',   val:0.15, c:'#5FD08A'},
+    {label:'Some',    val:0.50, c:'#9BD05F'},
+    {label:'Nearly',  val:0.82, c:'#F5C24C'},
+    {label:'Full',    val:0.98, c:'#E8705F'}
+  ];
+
+  // typical campus occupancy multiplier by hour
+  var HOURS = [0.18,0.14,0.12,0.11,0.12,0.16,0.24,0.38,0.58,0.78,0.92,1.00,
+               0.96,1.00,1.05,1.06,1.00,0.92,0.86,0.90,0.91,0.82,0.62,0.38];
+  var DAYS  = [0.78,1.00,1.05,1.05,1.00,0.82,0.68]; // Sun..Sat
+
+  var state = {
+    reports: load(),
+    exam: false,
+    clockMin: null   // null = use real time
+  };
+
+  /* ---------- storage ---------- */
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return [];
+      var p = JSON.parse(raw);
+      return Array.isArray(p) ? p : [];
+    }catch(e){ return []; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state.reports)); }catch(e){}
+  }
+
+  /* ---------- time ---------- */
+  function simNow(){
+    var real = new Date();
+    if(state.clockMin === null) return real;
+    var d = new Date(real);
+    d.setHours(Math.floor(state.clockMin/60), state.clockMin%60, 0, 0);
+    return d;
+  }
+  function fmtClock(mins){
+    var h = Math.floor(mins/60), m = mins%60;
+    var ap = h < 12 ? 'am' : 'pm';
+    var hh = h % 12; if(hh === 0) hh = 12;
+    return hh + ':' + (m<10?'0':'') + m + ap;
+  }
+  function ago(min){
+    if(min < 1)  return 'just now';
+    if(min < 60) return Math.round(min) + ' min ago';
+    var h = min/60;
+    if(h < 2)    return 'an hour ago';
+    return Math.round(h) + ' hours ago';
+  }
+
+  /* ---------- model ---------- */
+  function prior(zone, now){
+    var v = zone.base * HOURS[now.getHours()] * DAYS[now.getDay()] * (state.exam ? 1.22 : 1);
+    return Math.max(0.04, Math.min(0.99, v));
+  }
+
+  function compute(zone){
+    var now = simNow();
+    var p = prior(zone, now);
+    var sumW = 0, sumWL = 0, freshest = null;
+
+    for(var i=0; i<state.reports.length; i++){
+      var r = state.reports[i];
+      if(r.zone !== zone.id) continue;
+      var age = (now - r.ts) / 60000;
+      if(age < 0 || age > MAX_AGE) continue;
+      var w = Math.pow(0.5, age / HALF_LIFE);
+      sumW  += w;
+      sumWL += w * LEVELS[r.level].val;
+      if(freshest === null || age < freshest) freshest = age;
+    }
+
+    var occ  = (sumWL + PRIOR_W * p) / (sumW + PRIOR_W);
+    var live = sumW / (sumW + PRIOR_W);
+
+    return { occ:occ, live:live, prior:p, freshest:freshest, n:Math.round(sumW*10)/10 };
+  }
+
+  function statusOf(occ){
+    if(occ < 0.35) return 'Plenty of seats';
+    if(occ < 0.65) return 'Some seats';
+    if(occ < 0.88) return 'Nearly full';
+    return 'Full';
+  }
+  function colorOf(occ){
+    if(occ < 0.35) return '#5FD08A';
+    if(occ < 0.65) return '#9BD05F';
+    if(occ < 0.88) return '#F5C24C';
+    return '#E8705F';
+  }
+
+  /* ---------- render ---------- */
+  var zonesEl   = document.getElementById('zones');
+  var toastEl   = document.getElementById('toast');
+  var toastTimer;
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2100);
+  }
+
+  function render(){
+    var results = ZONES.map(function(z){
+      var c = compute(z);
+      return { zone:z, occ:c.occ, live:c.live, freshest:c.freshest };
+    });
+
+    var best = results.reduce(function(a,b){ return b.occ < a.occ ? b : a; });
+
+    // verdict
+    var vEl   = document.getElementById('verdict');
+    var vAns  = document.getElementById('verdictAnswer');
+    var vSub  = document.getElementById('verdictSub');
+    var vMeta = document.getElementById('verdictMeta');
+
+    var ans, col;
+    if(best.occ < 0.65){ ans = 'Go';        col = 'var(--go)'; }
+    else if(best.occ < 0.88){ ans = 'Maybe'; col = 'var(--maybe)'; }
+    else { ans = 'Not DC';                   col = 'var(--no)'; }
+
+    vEl.style.setProperty('--verdict-color', col);
+    vAns.textContent = ans;
+
+    if(ans === 'Not DC'){
+      vSub.innerHTML = 'Every space in DC is at or near capacity. ' +
+                       'Best of a bad set is <strong>' + best.zone.name + '</strong> at ' +
+                       Math.round(best.occ*100) + '%.';
+    } else {
+      vSub.innerHTML = 'Head for <strong>' + best.zone.name + '</strong> &mdash; ' +
+                       statusOf(best.occ).toLowerCase() + ' at ' +
+                       Math.round(best.occ*100) + '% full.';
+    }
+
+    var liveCount = results.filter(function(r){ return r.live > 0.3; }).length;
+    var now = simNow();
+    vMeta.textContent = fmtClock(now.getHours()*60 + now.getMinutes()) + ' · ' +
+      (liveCount === 0
+        ? 'no live reports — running on the model'
+        : liveCount + ' of ' + results.length + ' spaces on live reports');
+
+    // zones
+    zonesEl.innerHTML = '';
+    results.forEach(function(r){
+      var z = r.zone;
+      var card = document.createElement('div');
+      card.className = 'zone' + (r === best && best.occ < 0.88 ? ' best' : '');
+
+      var pct = Math.round(r.occ*100);
+      var col = colorOf(r.occ);
+      var isLive = r.live > 0.3;
+
+      var srcTxt, srcCls;
+      if(isLive){
+        srcCls = 'src live';
+        srcTxt = 'live · ' + ago(r.freshest);
+      } else if(r.freshest !== null){
+        srcCls = 'src stale';
+        srcTxt = 'last report ' + ago(r.freshest);
+      } else {
+        srcCls = 'src stale';
+        srcTxt = 'predicted · no reports';
+      }
+
+      card.innerHTML =
+        '<div class="zone-top">' +
+          '<div>' +
+            '<div class="zone-name">' + z.name +
+              (r === best && best.occ < 0.88 ? '<span class="best-tag">Best bet</span>' : '') +
+            '</div>' +
+            '<div class="zone-sub">' + z.sub + '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="zone-pct" style="color:' + col + '">' + pct + '%</div>' +
+            '<div class="zone-status">' + statusOf(r.occ) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="bar"><div class="bar-fill" style="width:' + pct + '%;background:' + col + '"></div></div>' +
+        '<div class="zone-meta"><span class="' + srcCls + '">' + srcTxt + '</span>' +
+          '<span>' + Math.round(r.live*100) + '% crowd-weighted</span>' +
+        '</div>';
+
+      var row = document.createElement('div');
+      row.className = 'report-row';
+      row.innerHTML = '<span class="rl">I’m here — it’s</span>';
+
+      LEVELS.forEach(function(lv, i){
+        var b = document.createElement('button');
+        b.className = 'rbtn';
+        b.textContent = lv.label;
+        b.style.setProperty('--c', lv.c);
+        b.setAttribute('aria-label', 'Report ' + z.name + ' as ' + lv.label);
+        b.addEventListener('click', function(){ report(z.id, i, z.name, lv.label); });
+        row.appendChild(b);
+      });
+
+      card.appendChild(row);
+      zonesEl.appendChild(card);
+    });
+  }
+
+  function report(zoneId, level, zoneName, levelLabel){
+    state.reports.push({ zone:zoneId, level:level, ts:simNow().getTime() });
+    if(state.reports.length > 400) state.reports = state.reports.slice(-400);
+    save();
+    render();
+    toast(zoneName + ' → ' + levelLabel + '. Thanks — that took five seconds.');
+  }
+
+  /* ---------- controls ---------- */
+  var examBtn  = document.getElementById('examToggle');
+  var clockEl  = document.getElementById('clockRange');
+  var clockRd  = document.getElementById('clockRead');
+
+  examBtn.addEventListener('click', function(){
+    state.exam = !state.exam;
+    examBtn.setAttribute('aria-pressed', String(state.exam));
+    render();
+  });
+
+  function syncClockLabel(){
+    if(state.clockMin === null){
+      var n = new Date();
+      clockRd.textContent = 'now';
+      clockRd.classList.remove('simulated');
+      clockRd.removeAttribute('title');
+      clockEl.value = n.getHours()*60 + n.getMinutes();
+    } else {
+      clockRd.textContent = fmtClock(state.clockMin);
+      clockRd.classList.add('simulated');
+      clockRd.setAttribute('title', 'Back to live time');
+    }
+  }
+
+  clockRd.addEventListener('click', function(){
+    if(state.clockMin === null) return;
+    state.clockMin = null;
+    syncClockLabel();
+    render();
+    toast('Back to live time.');
+  });
+
+  clockEl.addEventListener('input', function(){
+    state.clockMin = parseInt(clockEl.value, 10);
+    syncClockLabel();
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    state.reports = [];
+    save();
+    render();
+    toast('Reports cleared — back to the model alone.');
+  });
+
+  /* ---------- go ---------- */
+  syncClockLabel();
+  render();
+
+  // keep freshness honest while the tab is open
+  setInterval(function(){ if(state.clockMin === null) render(); }, 30000);
+
+})();
+</script>
+
+</body>
+</html>

@@ -37,6 +37,27 @@
         <section class="projects-grid">
             <div class="container">
 
+                <!-- PROJECT CARD: DC or Not DC -->
+                <article class="project-card">
+                    <div class="project-image">
+                        <div class="placeholder-image">DC or Not DC?</div>
+                    </div>
+                    <div class="project-content">
+                        <h2>DC or Not DC?</h2>
+                        <p class="project-description">
+                            A crowd-sourced occupancy tracker for study space in the Davis Centre at the University of Waterloo. During exam season, finding an open seat is a search problem thousands of students solve independently and badly &mdash; the information exists, it just isn't connected. The rebuild is designed around the cold-start problem that killed the original: a per-space time-of-day prior answers the question with zero contributors, and one-tap reports blend in on top and decay with a 25-minute half-life.
+                        </p>
+                        <div class="project-tags">
+                            <span class="tag">Crowd-sourcing</span>
+                            <span class="tag">Cold-start Design</span>
+                            <span class="tag">Interactive Demo</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="dc-or-not-dc.html" class="btn btn-small btn-secondary" data-demo="DC or Not DC?">Live demo</a>
+                        </div>
+                    </div>
+                </article>
+
                 <!-- PROJECT CARD: Combinatorial Sky -->
                 <article class="project-card">
                     <div class="project-image">
@@ -134,6 +155,21 @@
             </div>
         </div>
     </footer>
+
+    <!-- DEMO MODAL: any link with data-demo opens here -->
+    <div class="demo-modal" id="demo-modal" hidden>
+        <div class="demo-modal-backdrop" data-close></div>
+        <div class="demo-modal-panel" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+            <div class="demo-modal-bar">
+                <h2 class="demo-modal-title" id="demo-modal-title">Demo</h2>
+                <div class="demo-modal-actions">
+                    <a class="demo-modal-open" href="#" target="_blank" rel="noopener">Open in new tab &#8599;</a>
+                    <button type="button" class="demo-modal-close" data-close aria-label="Close demo">&times;</button>
+                </div>
+            </div>
+            <iframe class="demo-modal-frame" title="Interactive project demo" src="about:blank"></iframe>
+        </div>
+    </div>
 
     <script src="js/main.js"></script>
 </body>

@@ -37,3 +37,6 @@ Desktop.ini
 # Backup files
 *.bak
 
+
+# Local tooling
+.claude/
