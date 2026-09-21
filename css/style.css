@@ -623,3 +623,131 @@ footer p {
     }
 }
 
+
+/* ===========================
+   Demo Modal
+   =========================== */
+
+body.modal-open {
+    overflow: hidden;
+}
+
+.demo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.demo-modal[hidden] {
+    display: none;
+}
+
+.demo-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.72);
+    animation: demoFade 0.18s ease-out;
+}
+
+.demo-modal-panel {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    height: 88vh;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: demoRise 0.22s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+@keyframes demoFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes demoRise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+.demo-modal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 1rem 0.7rem 1.25rem;
+    border-bottom: 1px solid #e5e5e5;
+    background: #f9f9f9;
+    flex-shrink: 0;
+}
+
+.demo-modal-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+
+.demo-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.demo-modal-open {
+    font-size: 0.85rem;
+    color: #0066cc;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.demo-modal-open:hover {
+    text-decoration: underline;
+}
+
+.demo-modal-close {
+    border: none;
+    background: none;
+    font-size: 1.7rem;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+    padding: 0 0.3rem;
+    border-radius: 4px;
+}
+
+.demo-modal-close:hover {
+    color: #000;
+}
+
+.demo-modal-frame {
+    flex: 1;
+    width: 100%;
+    border: none;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .demo-modal {
+        padding: 0;
+    }
+
+    .demo-modal-panel {
+        height: 100%;
+        max-width: none;
+        border-radius: 0;
+    }
+}
