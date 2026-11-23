@@ -18,8 +18,8 @@
             </button>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="resume.html">Resume</a></li>
                 <li><a href="projects.html" class="active">Projects</a></li>
+                <li><a href="agent-orchestration.html">Agent House</a></li>
                 <li><a href="https://substack.com/@jackmcgaughey1" target="_blank">Blog</a></li>
                 <li><a href="publications.html">Publications</a></li>
             </ul>
@@ -30,12 +30,84 @@
         <section class="projects-header">
             <div class="container">
                 <h1>Projects</h1>
-                <p>Here are some of the projects I've worked on.</p>
+                <p>Here are some of the projects I've worked on. Most of the recent ones are about getting several AI
+                   agents to cooperate on something real.</p>
             </div>
         </section>
 
         <section class="projects-grid">
             <div class="container">
+
+                <!-- PROJECT CARD: Agent House -->
+                <article class="project-card">
+                    <div class="project-image" style="background:#eef6fd">
+                        <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block" role="img" aria-label="Diagram of a four-level agent hierarchy">
+                            <rect width="300" height="200" fill="#eef6fd"/>
+                            <g stroke="#9ecbf0" stroke-width="1.5" fill="none">
+                                <path d="M150 52 L150 68"/>
+                                <path d="M150 100 L150 114 M70 114 L230 114 M70 114 L70 128 M150 114 L150 128 M230 114 L230 128"/>
+                                <path d="M70 152 L70 162 M46 162 L94 162 M46 162 L46 170 M70 162 L70 170 M94 162 L94 170"/>
+                                <path d="M150 152 L150 162 M126 162 L174 162 M126 162 L126 170 M150 162 L150 170 M174 162 L174 170"/>
+                                <path d="M230 152 L230 162 M206 162 L254 162 M206 162 L206 170 M230 162 L230 170 M254 162 L254 170"/>
+                            </g>
+                            <rect x="112" y="32" width="76" height="20" rx="4" fill="#fff" stroke="#55606b" stroke-width="1.5"/>
+                            <rect x="104" y="68" width="92" height="32" rx="4" fill="#0066cc"/>
+                            <g fill="#e8f4ff" stroke="#0066cc" stroke-width="1.5">
+                                <rect x="40" y="128" width="60" height="24" rx="4"/>
+                                <rect x="120" y="128" width="60" height="24" rx="4"/>
+                                <rect x="200" y="128" width="60" height="24" rx="4"/>
+                            </g>
+                            <g fill="#fff" stroke="#b9d3e8" stroke-width="1.2">
+                                <rect x="36" y="170" width="20" height="13" rx="3"/><rect x="60" y="170" width="20" height="13" rx="3"/><rect x="84" y="170" width="20" height="13" rx="3"/>
+                                <rect x="116" y="170" width="20" height="13" rx="3"/><rect x="140" y="170" width="20" height="13" rx="3"/><rect x="164" y="170" width="20" height="13" rx="3"/>
+                                <rect x="196" y="170" width="20" height="13" rx="3"/><rect x="220" y="170" width="20" height="13" rx="3"/><rect x="244" y="170" width="20" height="13" rx="3"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="project-content">
+                        <h2>Agent House</h2>
+                        <p class="project-description">
+                            A small company of AI agents, built on an org chart instead of a prompt. An owner directs a coordinator,
+                            the coordinator directs one boss per project, and each boss runs a pool of workers on short feedback loops.
+                            It runs under a $1,000 monthly ceiling, pauses rooms that hit their cap, and routes anything that leaves the
+                            house into an approval queue. A worker's step only counts when it lands as a file, which is what keeps a
+                            long-running agent system honest.
+                        </p>
+                        <div class="project-tags">
+                            <span class="tag">Multi-Agent Orchestration</span>
+                            <span class="tag">Agent Governance</span>
+                            <span class="tag">Cost Control</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="agent-orchestration.html" class="btn btn-small btn-primary">Read the case study</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- PROJECT CARD: Pixel News -->
+                <article class="project-card">
+                    <div class="project-image">
+                        <div class="placeholder-image">Pixel News</div>
+                    </div>
+                    <div class="project-content">
+                        <h2>Pixel News</h2>
+                        <p class="project-description">
+                            The first product Agent House runs, and the test case that keeps it grounded. Pixel News is a weekly news
+                            reader for people learning Chinese: seven short true stories an issue, written separately at HSK levels 2
+                            through 5, plus printable study packs with grammar and answer keys, Anki decks with audio, and short vertical
+                            videos. I chose it as the first room because a machine can grade the output. Either a story uses enough words
+                            at its own level or the build fails.
+                        </p>
+                        <div class="project-tags">
+                            <span class="tag">Agent Pipeline</span>
+                            <span class="tag">Content Generation</span>
+                            <span class="tag">Automated QA</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="agent-orchestration.html#pixel-news" class="btn btn-small btn-secondary">How it's built</a>
+                        </div>
+                    </div>
+                </article>
 
                 <!-- PROJECT CARD: DC or Not DC -->
                 <article class="project-card">

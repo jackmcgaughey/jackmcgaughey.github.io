@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Agent House: running a team of AI agents on an org chart, a fixed budget and short feedback loops.">
+    <title>Jack McGaughey - Agent House</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Page-scoped styles (cs- prefix) for the Agent House case study */
+        .cs-hero {
+            padding: 3.5rem 0 2.5rem;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .cs-eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #0066cc;
+            margin-bottom: 0.6rem;
+        }
+        .cs-hero h1 { margin-bottom: 0.4rem; }
+        .cs-hero .cs-standfirst {
+            font-size: 1.3rem;
+            color: #555;
+            max-width: 760px;
+            margin-bottom: 1.4rem;
+        }
+        .cs-hero .cs-lede {
+            font-size: 1.05rem;
+            color: #555;
+            max-width: 760px;
+        }
+
+        .cs-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1px;
+            background: #e5e5e5;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+        .cs-stat { background: #fff; padding: 1.1rem 1.25rem; }
+        .cs-stat .cs-stat-figure {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0066cc;
+            line-height: 1.1;
+        }
+        .cs-stat .cs-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.3rem;
+        }
+
+        .cs-section { padding: 3rem 0 0; }
+        .cs-section:last-of-type { padding-bottom: 1rem; }
+        .cs-section > .container > h2 {
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .cs-body { max-width: 780px; }
+        .cs-body p { color: #555; }
+
+        .cs-figure {
+            margin: 2rem 0 1rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #fff;
+            padding: 1.5rem 1rem 1rem;
+        }
+        .cs-figure svg { width: 100%; height: auto; display: block; }
+        .cs-caption {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 1rem auto 0;
+            max-width: 720px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .cs-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .cs-card {
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1.25rem 1.4rem;
+            background: #fff;
+        }
+        .cs-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .cs-card p { font-size: 0.95rem; color: #555; margin-bottom: 0; }
+
+        .cs-loop {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.25rem;
+            margin: 1.75rem 0 0.5rem;
+        }
+        .cs-loop-step {
+            border-left: 3px solid #0066cc;
+            padding: 0.3rem 0 0.3rem 1rem;
+            background: #f9fbfd;
+        }
+        .cs-loop-step .cs-loop-who { font-weight: 600; color: #333; }
+        .cs-loop-step .cs-loop-every {
+            font-size: 0.85rem;
+            color: #0066cc;
+            font-weight: 600;
+            margin: 0.1rem 0 0.35rem;
+        }
+        .cs-loop-step p { font-size: 0.93rem; color: #555; margin-bottom: 0; }
+
+        .cs-rules { max-width: 780px; margin-top: 1.25rem; }
+        .cs-rules dt {
+            font-weight: 600;
+            color: #333;
+            margin-top: 1.1rem;
+        }
+        .cs-rules dd {
+            color: #555;
+            margin: 0.2rem 0 0;
+            line-height: 1.7;
+        }
+
+        .cs-pull {
+            border-left: 3px solid #0066cc;
+            background: #f9fbfd;
+            padding: 1.1rem 1.4rem;
+            margin: 1.75rem 0;
+            max-width: 780px;
+        }
+        .cs-pull p { margin-bottom: 0; color: #333; font-size: 1.05rem; }
+
+        .cs-states {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1.25rem 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .cs-states li {
+            background: #f5f5f5;
+            border: 1px solid #e5e5e5;
+            border-radius: 15px;
+            padding: 0.3rem 0.85rem;
+            font-size: 0.87rem;
+            color: #555;
+        }
+        .cs-states li b { color: #333; font-weight: 600; }
+
+        .cs-takeaways { max-width: 780px; margin-top: 1.25rem; padding-left: 1.2rem; }
+        .cs-takeaways li { color: #555; margin-bottom: 0.7rem; line-height: 1.7; }
+        .cs-takeaways li b { color: #333; }
+
+        .cs-status {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1.4rem 1.6rem;
+            max-width: 780px;
+            margin-top: 1.25rem;
+        }
+        .cs-status p:last-child { margin-bottom: 0; }
+        .cs-status .cs-note { font-size: 0.9rem; color: #777; }
+
+        .cs-footer-nav {
+            padding: 2.5rem 0 0;
+            max-width: 780px;
+        }
+
+        @media (max-width: 768px) {
+            .cs-hero .cs-standfirst { font-size: 1.12rem; }
+            .cs-figure { padding: 1rem 0.5rem 0.5rem; }
+            /* Keep the diagram's labels readable: swipe it instead of shrinking it. */
+            .cs-figure .cs-scroller { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .cs-figure .cs-scroller svg { min-width: 660px; }
+            .cs-figure .cs-scroll-hint { display: block; }
+        }
+        .cs-scroll-hint {
+            display: none;
+            font-size: 0.8rem;
+            color: #999;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">Jack McGaughey</a>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="projects.html">Projects</a></li>
+                <li><a href="agent-orchestration.html" class="active">Agent House</a></li>
+                <li><a href="https://substack.com/@jackmcgaughey1" target="_blank">Blog</a></li>
+                <li><a href="publications.html">Publications</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <section class="cs-hero">
+            <div class="container">
+                <p class="cs-eyebrow">Multi-agent systems</p>
+                <h1>Agent House</h1>
+                <p class="cs-standfirst">A team of AI agents with an org chart, a budget it can't exceed, and one screen that shows who's working, what it cost, and what's stuck.</p>
+                <p class="cs-lede">
+                    Most agent demos are one model in a chat window, which means the person at the keyboard is the bottleneck.
+                    I wanted to know what happens if you hand agents an org chart instead. Agent House is a house where every
+                    room is a project, every sprite is an agent, and the study in the middle is a coordinator that answers to me.
+                    It runs on a fixed monthly budget, records every dollar it spends, and stops itself when it hits a cap.
+                </p>
+                <div class="cs-stats">
+                    <div class="cs-stat">
+                        <div class="cs-stat-figure">4</div>
+                        <div class="cs-stat-label">levels of delegation, from owner to worker</div>
+                    </div>
+                    <div class="cs-stat">
+                        <div class="cs-stat-figure">3</div>
+                        <div class="cs-stat-label">nested feedback loops, hourly down to minutes</div>
+                    </div>
+                    <div class="cs-stat">
+                        <div class="cs-stat-figure">$1,000</div>
+                        <div class="cs-stat-label">monthly ceiling across every cost</div>
+                    </div>
+                    <div class="cs-stat">
+                        <div class="cs-stat-figure">~$800</div>
+                        <div class="cs-stat-label">target monthly margin at full volume</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Why an org chart and not a prompt</h2>
+                <div class="cs-body">
+                    <p>
+                        One agent is fine for one task. The trouble starts when you want a dozen things happening at once,
+                        because then you have to answer questions that have nothing to do with models. Who picks the next
+                        piece of work? Who checks it before it counts? Who's allowed to spend money, and how much? Those are
+                        management questions, so I built the management layer first and treated the models as staff.
+                    </p>
+                    <p>
+                        The result is four levels, and each one only talks to the level directly above and below it. Everything
+                        on screen comes out of a folder on disk, so I can read the whole state of the company in a text editor
+                        and edit it by hand if I disagree with something.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>The chain of command</h2>
+                <div class="cs-figure">
+                    <div class="cs-scroller">
+                    <svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="orgTitle orgDesc">
+                        <title id="orgTitle">The four levels of Agent House</title>
+                        <desc id="orgDesc">The owner directs a coordinator, which directs one boss per room, and each boss directs a pool of worker agents. Spend, errors and alarms bypass the boss and go straight to the coordinator.</desc>
+
+                        <!-- tier labels -->
+                        <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" fill="#999" text-anchor="end" letter-spacing="0.06em">
+                            <text x="104" y="52">OWNER</text>
+                            <text x="104" y="152">THE STUDY</text>
+                            <text x="104" y="280">ROOMS</text>
+                            <text x="104" y="366">WORKERS</text>
+                        </g>
+
+                        <!-- flow annotations -->
+                        <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#999">
+                            <text x="16" y="250" text-anchor="middle" transform="rotate(-90 16 250)">goals, briefs, direction &#8595;</text>
+                            <text x="852" y="250" text-anchor="middle" transform="rotate(-90 852 250)">evidence, numbers, cost &#8593;</text>
+                        </g>
+
+                        <!-- connectors -->
+                        <g stroke="#bbb" stroke-width="1.5" fill="none">
+                            <path d="M500 72 L500 118"/>
+                            <path d="M500 182 L500 216 M250 216 L750 216 M250 216 L250 252 M500 216 L500 252 M750 216 L750 252"/>
+                            <path d="M250 300 L250 326 M190 326 L310 326 M190 326 L190 348 M250 326 L250 348 M310 326 L310 348"/>
+                            <path d="M500 300 L500 326 M440 326 L560 326 M440 326 L440 348 M500 326 L500 348 M560 326 L560 348"/>
+                            <path d="M750 300 L750 326 M690 326 L810 326 M690 326 L690 348 M750 326 L750 348 M810 326 L810 348"/>
+                        </g>
+
+                        <!-- bypass channel -->
+                        <g fill="none" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="5 4">
+                            <path d="M820 362 L905 362 L905 150 L648 150"/>
+                        </g>
+                        <path d="M648 150 l9 -4.5 v9 z" fill="#c2410c"/>
+                        <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#c2410c" text-anchor="end">
+                            <text x="905" y="104">spend, errors and alarms</text>
+                            <text x="905" y="119">skip the boss</text>
+                        </g>
+
+                        <!-- owner -->
+                        <rect x="415" y="30" width="170" height="42" rx="6" fill="#fff" stroke="#333" stroke-width="1.5"/>
+                        <text x="500" y="56" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#333" text-anchor="middle">Owner (me)</text>
+
+                        <!-- study -->
+                        <rect x="360" y="118" width="280" height="64" rx="6" fill="#0066cc" stroke="#0066cc"/>
+                        <text x="500" y="144" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#fff" text-anchor="middle">Oak, the coordinator</text>
+                        <text x="500" y="166" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#cfe6ff" text-anchor="middle">with Lark, the intel scout</text>
+
+                        <!-- bosses -->
+                        <g>
+                            <rect x="160" y="252" width="180" height="48" rx="6" fill="#e8f4ff" stroke="#0066cc" stroke-width="1.5"/>
+                            <text x="250" y="272" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#0b4f8a" text-anchor="middle">Room boss</text>
+                            <text x="250" y="289" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#4a7ea8" text-anchor="middle">Pixel News</text>
+
+                            <rect x="410" y="252" width="180" height="48" rx="6" fill="#e8f4ff" stroke="#0066cc" stroke-width="1.5"/>
+                            <text x="500" y="272" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#0b4f8a" text-anchor="middle">Room boss</text>
+                            <text x="500" y="289" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#4a7ea8" text-anchor="middle">one per project</text>
+
+                            <rect x="660" y="252" width="180" height="48" rx="6" fill="#f5faff" stroke="#9ecbf0" stroke-width="1.5" stroke-dasharray="4 3"/>
+                            <text x="750" y="272" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#6a97bd" text-anchor="middle">empty room</text>
+                            <text x="750" y="289" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#8fb3cc" text-anchor="middle">opened by proposal</text>
+                        </g>
+
+                        <!-- workers -->
+                        <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#555" text-anchor="middle">
+                            <rect x="165" y="348" width="50" height="26" rx="4" fill="#f5f5f5" stroke="#d8d8d8"/><text x="190" y="365">Wren</text>
+                            <rect x="225" y="348" width="50" height="26" rx="4" fill="#f5f5f5" stroke="#d8d8d8"/><text x="250" y="365">Quill</text>
+                            <rect x="285" y="348" width="50" height="26" rx="4" fill="#f5f5f5" stroke="#d8d8d8"/><text x="310" y="365">Moss</text>
+
+                            <rect x="415" y="348" width="50" height="26" rx="4" fill="#f5f5f5" stroke="#d8d8d8"/><text x="440" y="365">Flint</text>
+                            <rect x="475" y="348" width="50" height="26" rx="4" fill="#f5f5f5" stroke="#d8d8d8"/><text x="500" y="365">role</text>
+                            <rect x="535" y="348" width="50" height="26" rx="4" fill="#f5f5f5" stroke="#d8d8d8"/><text x="560" y="365">role</text>
+
+                            <rect x="665" y="348" width="50" height="26" rx="4" fill="#fafafa" stroke="#e5e5e5" stroke-dasharray="3 3"/>
+                            <rect x="725" y="348" width="50" height="26" rx="4" fill="#fafafa" stroke="#e5e5e5" stroke-dasharray="3 3"/>
+                            <rect x="785" y="348" width="50" height="26" rx="4" fill="#fafafa" stroke="#e5e5e5" stroke-dasharray="3 3"/>
+                        </g>
+
+                        <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#888" text-anchor="middle">
+                            <text x="250" y="398">a role is a kind of worker, not one worker:</text>
+                            <text x="250" y="413">judgment roles run 1, mechanical roles run dozens</text>
+                            <text x="750" y="398">each room gets its own key</text>
+                            <text x="750" y="413">and its own spending limit</text>
+                        </g>
+                    </svg>
+                    </div>
+                    <p class="cs-scroll-hint">Swipe the diagram sideways &#8594;</p>
+                    <p class="cs-caption">
+                        Direction travels down as goals and briefs. Evidence travels up as numbers and files. Money and alarms
+                        take a separate channel straight to the coordinator, so a boss can't sit quietly on a problem in its own room.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Three loops, not one</h2>
+                <div class="cs-body">
+                    <p>
+                        Nothing in the house waits on my attention. Each level runs on a fixed rhythm, and the rhythms are
+                        nested so that the expensive thinking happens rarely and the cheap correcting happens often.
+                    </p>
+                </div>
+                <div class="cs-loop">
+                    <div class="cs-loop-step">
+                        <div class="cs-loop-who">Coordinator</div>
+                        <div class="cs-loop-every">every hour</div>
+                        <p>Acts on my directives first, then rules on spend flags, scores every boss goal against where it should be, and sends each boss one message with the gap and at least two ideas for closing it.</p>
+                    </div>
+                    <div class="cs-loop-step">
+                        <div class="cs-loop-who">Room boss</div>
+                        <div class="cs-loop-every">every 15 minutes</div>
+                        <p>Turns the coordinator's direction into worker goals immediately, then scores each worker on the steps and files since the last meeting. Weak work gets redone, not accepted.</p>
+                    </div>
+                    <div class="cs-loop-step">
+                        <div class="cs-loop-who">Worker</div>
+                        <div class="cs-loop-every">every 2 to 60 minutes</div>
+                        <p>Reads its brief, does one unit of work, and records the step with its evidence, the goal number afterwards, and what it cost. Cheap steps run fast, expensive ones run slowly.</p>
+                    </div>
+                </div>
+                <div class="cs-pull">
+                    <p>The short loops exist for feedback, not speed. A worker gets scored after a few steps instead of once an hour, so bad work is caught while it's still cheap to throw away.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Goals that have to close</h2>
+                <div class="cs-body">
+                    <p>
+                        Every goal carries a deadline counted in meetings rather than in minutes, which means pausing the
+                        house doesn't quietly blow a deadline. Paused time doesn't count against anything.
+                    </p>
+                </div>
+                <div class="cs-cards">
+                    <div class="cs-card">
+                        <h3>Coordinator objectives</h3>
+                        <p>The house goal plus one objective per room, running weeks to a month. These are the coordinator's own, not handed down from me as-is.</p>
+                    </div>
+                    <div class="cs-card">
+                        <h3>Boss goals</h3>
+                        <p>Set by the coordinator, and each has to be finishable within 20 of its own meetings. Each one serves a single objective above it.</p>
+                    </div>
+                    <div class="cs-card">
+                        <h3>Worker goals</h3>
+                        <p>Set by the boss, finishable within 3 boss meetings (about 45 minutes). Short enough that a wrong goal costs under an hour.</p>
+                    </div>
+                </div>
+                <div class="cs-body">
+                    <p style="margin-top:1.5rem">
+                        At every meeting the manager writes a scorecard: which meeting this is, where the goal should be by now,
+                        where it actually is, and what it cost to get there. Then it decides one of four things, which are keep,
+                        raise, revise or replace. A goal that's met early gets raised instead of coasted on, because every goal in
+                        the house is a floor rather than a ceiling.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Evidence instead of adjectives</h2>
+                <div class="cs-body">
+                    <p>
+                        This is the rule that changed the most. A worker's step only counts when it lands as a real file in its
+                        room's workspace folder. A step that claims progress without one gets recorded as no progress and doesn't
+                        move the goal. A plan for a product isn't a product, and neither is a listing for something that doesn't
+                        exist yet.
+                    </p>
+                    <p>
+                        Stalling is handled the same way. Three stalled steps alerts the worker's boss. A boss stalled for two
+                        hours gets reviewed by the coordinator. And a step that cost more than it was worth has to say so in
+                        writing, which sends it up to the coordinator where the way an agent works can actually be changed.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Money is the hard boundary</h2>
+                <div class="cs-body">
+                    <p>
+                        An agent that can spend money needs limits that don't depend on anyone paying attention. The budget is
+                        part of the system rather than part of my memory.
+                    </p>
+                </div>
+                <dl class="cs-rules">
+                    <dt>One ceiling for everything</dt>
+                    <dd>$1,000 a month covers model calls, subscriptions, services and one-off purchases. Each room gets a slice of it, and that slice covers all of the room's costs.</dd>
+
+                    <dt>Caps that act on their own</dt>
+                    <dd>At 80% of a room's budget the coordinator is alerted. At 100% the room pauses itself. There's a separate daily cap that stops model spend for the rest of the day.</dd>
+
+                    <dt>Spending authority by level</dt>
+                    <dd>A boss can decide up to $3 a month inside its own room. The coordinator can decide up to $10 a month. Anything larger becomes a proposal in a queue that waits for me.</dd>
+
+                    <dt>A backstop outside the agents' reach</dt>
+                    <dd>Each room runs on its own API key with its own hard spending limit, so the last line of defence isn't code that an agent could be wrong about.</dd>
+
+                    <dt>Some things always ask first</dt>
+                    <dd>Anything that leaves the house comes to me: email, posts, pull requests, invoices, new accounts, accepting terms, anything involving credentials. Agents don't get to sign things.</dd>
+
+                    <dt>Cheapest model that passes</dt>
+                    <dd>Every room prefers the cheapest model that clears its own quality check, and the expensive frontier models are reserved for the coordinator unless I approve otherwise.</dd>
+                </dl>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Context is a budget too</h2>
+                <div class="cs-body">
+                    <p>
+                        Every call is assembled from layers in priority order. The routine, the role file, the goal chain and the
+                        current task always go in. House rules, the room's playbook, its curated memory, its charter and recent
+                        steps are added only while they still fit the token limit for that level.
+                    </p>
+                    <p>
+                        Workers read a five-line version of the house rules. Bosses and the coordinator read the long one. Every
+                        file has a size cap, whoever writes it keeps it under that cap, and the coordinator's hourly routine
+                        compacts anything that has grown past it. Clicking an agent in the app shows exactly what it reads on
+                        every call and what that stack costs, which turns prompt size into something I can see rather than guess at.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>One screen to watch it</h2>
+                <div class="cs-body">
+                    <p>
+                        I didn't want to supervise this by reading logs, so the house is drawn as a pixel-art cutaway. Each room
+                        is a project. Under its nameplate a flame bar shows spend against budget (amber at 80%, red at 100%) and
+                        a coin bar shows earnings against the monthly goal. The ceiling lamp is lit when the room is busy, dark
+                        when it's idle, and blinks red when it needs me.
+                    </p>
+                    <p>
+                        The sprites are the agents, and each one wears its state:
+                    </p>
+                    <ul class="cs-states">
+                        <li><b>typing</b> tool call in flight</li>
+                        <li><b>thought bubble</b> thinking</li>
+                        <li><b>zzz</b> idle</li>
+                        <li><b>?</b> waiting on my approval</li>
+                        <li><b>!</b> error or loop guard</li>
+                        <li><b>$</b> hit the hard cap</li>
+                    </ul>
+                    <p style="margin-top:1.25rem">
+                        Clicking a room opens its money, goals, boss, workers and tasks, with the detail folded underneath.
+                        Three tabs sit over the top of it all: Proposals, which is the approval queue, Ledger, which is every
+                        dollar the house has spent or earned, and Goals, which is the whole goal tree with its pace and cost.
+                        I can pause the entire house, the study, or one room from the same screen, and pausing means stopped
+                        where it is rather than cancelled.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section" id="pixel-news">
+            <div class="container">
+                <h2>What it's actually building</h2>
+                <div class="cs-body">
+                    <p>
+                        A system like this is easy to over-engineer in the abstract, so the first room has a real product with a
+                        real buyer. It publishes <b>Pixel News</b>, a weekly news reader for people learning Chinese. Each issue
+                        is seven short true stories, written separately at HSK levels 2 through 5 so a learner reads real news at
+                        the level they're actually at.
+                    </p>
+                    <p>
+                        From those stories the room builds the rest of the week on its own: printable study packs with pinyin by
+                        level, grammar boxes, exercises, answer keys and writing squares, Anki decks where each card plays the
+                        word and then the sentence, short vertical videos, and a Word of the Day carousel. Then it puts the week
+                        up as unpublished drafts on a storefront and waits for me to approve them.
+                    </p>
+                    <p>
+                        It's a good first room because the output is checkable by a machine. Either a story uses enough words
+                        from its own HSK level or it doesn't, and the build fails on a story that misses a level. Vague goals are
+                        what make agent systems drift, so the first room was chosen for having none.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>The economics</h2>
+                <div class="cs-body">
+                    <p>
+                        The ceiling is $1,000 a month and it covers every cost the house can incur. The design target is to run
+                        the publication inside roughly a fifth of that, which leaves about $800 a month of the envelope as margin
+                        once volume is up. Subscriptions are priced per level, with bundles for the evergreen topic packs.
+                    </p>
+                    <p>
+                        The margin isn't really the interesting number though. What matters is that the downside is bounded by
+                        construction. A room pauses itself at its cap whether or not I'm watching, the key behind it has its own
+                        limit, and nothing gets published or purchased without passing through the approval queue first. That's
+                        what makes it reasonable to let the thing run while I'm asleep.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>Where it stands</h2>
+                <div class="cs-status">
+                    <p>
+                        The house runs on a server and reads its entire state from a folder, so I can edit any of it by hand and
+                        my edits win. The publishing pipeline works and has produced full weekly issues, study packs, decks and
+                        videos. The autonomous runner, the piece that puts real model calls behind the hourly meetings and writes
+                        the usage ledger, is the current work.
+                    </p>
+                    <p>
+                        It starts paused on purpose, and I'd rather it do nothing than do something expensive unsupervised. The
+                        remaining phases are the runner on live models, then allowlisted tools, then a supervised 24-hour run.
+                    </p>
+                    <p class="cs-note">The code isn't public. Happy to walk through it.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <div class="container">
+                <h2>What I'd carry into the next one</h2>
+                <ol class="cs-takeaways">
+                    <li><b>Put the budget in the system, not in your head.</b> A cap that depends on someone noticing isn't a cap.</li>
+                    <li><b>Make progress produce an artifact or it didn't happen.</b> Agents are good at describing work convincingly, so the definition of done has to be a file on disk.</li>
+                    <li><b>Short feedback loops beat clever agents.</b> Scoring a cheap worker every 15 minutes caught more problems than giving it a better model.</li>
+                    <li><b>Count deadlines in meetings, not minutes.</b> It makes goals comparable, and it means pausing costs nothing.</li>
+                    <li><b>Treat context like money.</b> A token limit per level and a size cap per file, with someone whose job it is to compact what's grown too big.</li>
+                    <li><b>Pick a first problem a machine can grade.</b> Checkable output is what keeps a long-running system honest.</li>
+                </ol>
+                <div class="cs-footer-nav">
+                    <a href="projects.html" class="back-link">&#8592; Back to projects</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Jack McGaughey. All rights reserved.</p>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/jack-mcgaughey-0a30541b6/" target="_blank">LinkedIn</a>
+                <a href="https://github.com/jackmcgaughey" target="_blank">GitHub</a>
+                <a href="https://substack.com/@jackmcgaughey1" target="_blank">Substack</a>
+                <a href="https://scholar.google.ca/citations?view_op=list_works&hl=en&hl=en&user=lZKS_b4AAAAJ" target="_blank">Google Scholar</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
